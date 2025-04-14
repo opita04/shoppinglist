@@ -1,0 +1,529 @@
+/* Base Styles */
+:root {
+    --primary-color: #3498db; /* Blue */
+    --secondary-color: #f39c12; /* Orange */
+    --light-bg: #ecf0f1; /* Light Grey */
+    --white: #ffffff;
+    --dark-grey: #7f8c8d;
+    --mid-grey: #bdc3c7;
+    --danger: #e74c3c; /* Red */
+    --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    background-color: var(--light-bg);
+    color: #333;
+}
+
+header {
+    background-color: var(--primary-color);
+    color: var(--white);
+    padding: 1rem;
+    text-align: center;
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+h1 {
+    margin-bottom: 0.5rem;
+    font-size: 1.8rem;
+}
+
+h2 {
+    font-size: 1.4rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 0.5rem;
+}
+
+h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: var(--secondary-color);
+}
+
+button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    background-color: var(--primary-color);
+    color: var(--white);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
+}
+
+button:hover {
+    background-color: #2980b9; /* Darker blue */
+}
+
+select, input[type="text"] {
+    padding: 0.5rem;
+    border: 1px solid var(--mid-grey);
+    border-radius: 4px;
+    font-size: 1rem;
+    width: 100%;
+    margin-bottom: 0.5rem; /* Spacing */
+}
+
+label {
+    display: block;
+    margin-bottom: 0.2rem;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+ul {
+    list-style: none;
+}
+
+/* Header Controls */
+.list-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    align-items: center;
+}
+
+.list-controls label {
+    margin: 0 0.2rem 0 0;
+    font-weight: normal;
+}
+
+.list-controls select {
+    max-width: 200px;
+    flex-grow: 1;
+    margin-bottom: 0; /* Override default */
+}
+
+/* Main Layout */
+main {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+section {
+    background-color: var(--white);
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+}
+
+/* Item Management Specific */
+#item-management .store-controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+#item-management .store-controls select {
+    flex-grow: 1;
+}
+
+.store-container {
+    background-color: var(--light-bg);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 6px;
+}
+
+.store-header, .category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--mid-grey);
+}
+
+.store-actions,
+.category-actions,
+.item-actions {
+    display: flex;
+    gap: 0.3rem;
+}
+
+.store-actions button,
+.category-actions button {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.5rem;
+}
+
+.category-container {
+    background-color: var(--white);
+    padding: 0.5rem;
+    margin-top: 0.75rem;
+    border-radius: 4px;
+    border-left: 4px solid var(--secondary-color);
+}
+
+.item-input-area {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.item-input-area input.new-item-input {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.9rem;
+    width: auto;
+    flex-grow: 1;
+}
+
+.item-input-area button.add-item-btn {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+}
+
+.item-list {
+    padding-top: 0.5rem;
+    min-height: 30px;
+}
+
+.item, .shopping-list-item {
+    display: flex;
+    align-items: center;
+    padding: 0.3rem 0;
+    border-bottom: 1px solid var(--mid-grey);
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+    overflow: hidden;
+}
+
+.item:last-child, .shopping-list-item:last-child {
+    border-bottom: none;
+}
+
+.drag-handle {
+    cursor: grab;
+    padding: 0 0.5rem;
+    color: var(--dark-grey);
+    opacity: 0.6;
+}
+
+.item .item-name {
+    flex-grow: 1;
+    flex-shrink: 0;
+    margin: 0;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 40%;
+}
+
+.item-actions {
+    display: flex;
+    gap: 0.3rem;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.item-actions button {
+    background: none;
+    border: none;
+    padding: 0.1rem 0.2rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    color: var(--dark-grey);
+}
+
+.item-actions .add-to-shopping-list-btn {
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+.item-actions .delete-item-btn {
+    color: var(--danger);
+}
+
+/* Shopping List Specific */
+.shopping-list-store-group {
+    background-color: var(--light-bg);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 6px;
+}
+
+.shopping-list-category-group {
+    background-color: var(--white);
+    padding: 0.75rem;
+    margin-top: 0.75rem;
+    border-radius: 4px;
+    border-left: 4px solid var(--secondary-color);
+}
+
+.shopping-list-item-list {
+     padding-top: 0.5rem;
+     min-height: 40px; /* For drop target */
+}
+
+.shopping-list-item {
+    display: flex;
+    align-items: center;
+    padding: 0.3rem 0;
+    border-bottom: 1px solid var(--mid-grey);
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+    overflow: hidden;
+    position: relative;
+}
+
+.shopping-list-item .item-checkbox {
+    margin-right: 0;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.shopping-list-item .drag-handle {
+    flex-shrink: 0;
+    width: auto;
+    padding: 0 0.3rem;
+    cursor: grab;
+    color: var(--dark-grey);
+    opacity: 0.6;
+}
+
+.shopping-list-item .item-label {
+    display: flex;
+    align-items: baseline;
+    margin: 0;
+    font-weight: normal;
+    overflow: hidden;
+    flex-shrink: 1;
+    min-width: 0;
+    gap: 0.5rem;
+}
+
+.shopping-list-item .item-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.shopping-list-item.checked .item-label {
+    text-decoration: line-through;
+    color: var(--dark-grey);
+    opacity: 0.7;
+}
+
+.shopping-list-item .remove-from-list-btn {
+    background: none;
+    border: none;
+    padding: 0.2rem;
+    font-size: 1rem;
+    cursor: pointer;
+    color: var(--danger);
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+/* Side Panel */
+.side-panel {
+    position: fixed;
+    top: 0;
+    right: -100%; /* Start off-screen */
+    width: 100%;
+    max-width: 350px;
+    height: 100%;
+    background-color: var(--white);
+    box-shadow: -3px 0 6px rgba(0,0,0,0.15);
+    z-index: 1001;
+    transition: right 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+}
+
+.side-panel.show {
+    right: 0;
+}
+
+.panel-header {
+    background-color: var(--primary-color);
+    color: var(--white);
+    padding: 0.75rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-header h3 {
+    margin: 0;
+}
+
+.panel-header button {
+    background: none;
+    border: none;
+    color: var(--white);
+    font-size: 1.5rem;
+    padding: 0 0.5rem;
+}
+
+#archived-lists-container {
+    padding: 1rem;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.archived-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    border: 1px solid var(--mid-grey);
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    background-color: var(--light-bg);
+}
+
+.archived-list-item .list-name {
+    font-weight: bold;
+    flex-grow: 1;
+    margin-right: 0.5rem;
+}
+
+.archived-list-item .list-date {
+    font-size: 0.8rem;
+    color: var(--dark-grey);
+    margin-right: 0.5rem;
+}
+
+.archived-list-actions button {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.5rem;
+    margin-left: 0.3rem;
+}
+
+.archived-list-actions .restore-list-btn {
+    background-color: var(--secondary-color);
+}
+
+.archived-list-actions .delete-archived-list-btn {
+    background-color: var(--danger);
+}
+
+/* Modals */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1002;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-content {
+    background-color: var(--white);
+    margin: auto;
+    padding: 1.5rem;
+    border: 1px solid #888;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 8px;
+    position: relative;
+}
+
+.close-modal {
+    color: #aaa;
+    position: absolute;
+    top: 0.5rem;
+    right: 1rem;
+    font-size: 1.8rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-modal:hover,
+.close-modal:focus {
+    color: black;
+    text-decoration: none;
+}
+
+.modal h3 {
+    margin-top: 0;
+    color: var(--primary-color);
+}
+
+.modal input[type="text"],
+.modal select {
+    width: 100%;
+    margin-bottom: 1rem; /* Spacing between fields */
+}
+
+.modal button {
+    margin-top: 0.5rem;
+}
+
+/* Drag and Drop Styles */
+.item.dragging, .shopping-list-item.dragging {
+    opacity: 0.5;
+    background-color: #eaf2f8;
+    border: 1px dashed var(--primary-color);
+}
+
+.item-list.drag-over, .shopping-list-item-list.drag-over {
+    background-color: #d6eaf8;
+    outline: 1px dashed var(--primary-color);
+    outline-offset: -2px;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--dark-grey);
+    font-style: italic;
+}
+
+/* Responsive Adjustments */
+@media (min-width: 768px) {
+    main {
+        flex-direction: row;
+        align-items: flex-start; /* Align panels to top */
+    }
+
+    #item-management,
+    #shopping-list {
+        flex: 1; /* Make panels take equal width */
+    }
+
+    .list-controls {
+        flex-wrap: nowrap;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+} 

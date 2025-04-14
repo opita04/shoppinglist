@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Una aplicación de lista de compras mobile-first">
+    <title>Lista de Compras</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Lista de Compras</h1>
+        <div class="list-controls">
+            <label for="active-list-select">Lista Actual:</label>
+            <select id="active-list-select">
+                <!-- Active list options populated by JS -->
+            </select>
+            <button id="new-list-btn">Nueva Lista</button>
+            <button id="archive-list-btn">Archivar Lista</button>
+            <button id="view-archived-btn">Ver Archivadas</button>
+            <button id="export-data-btn" title="Exportar Datos">&#x2913;</button>
+            <button id="import-data-btn" title="Importar Datos">&#x2191;</button>
+            <input type="file" id="import-file-input" accept=".json" style="display: none;">
+        </div>
+    </header>
+
+    <main>
+        <!-- Item Management Panel -->
+        <section id="item-management">
+            <h2>Gestión de Artículos</h2>
+            <div class="store-controls">
+                <button id="add-store-btn">Añadir Tienda</button>
+                <select id="filter-store-select">
+                    <option value="all">Todas las Tiendas</option>
+                    <!-- Store filter options populated by JS -->
+                </select>
+                <input type="search" id="search-master-items-input" placeholder="Buscar artículos...">
+            </div>
+            <div id="store-containers" data-droppable-stores="true">
+                <!-- Store sections populated by JS -->
+            </div>
+        </section>
+
+        <!-- Shopping List Panel -->
+        <section id="shopping-list">
+            <h2>Lista de Compras</h2>
+            <h3 id="active-list-name-display" class="active-list-title"></h3>
+            <div id="shopping-list-items-container">
+                <!-- Shopping list items populated by JS -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Side Panel for Archived Lists -->
+    <aside id="archived-lists-panel" class="side-panel">
+        <div class="panel-header">
+            <h3>Listas Archivadas</h3>
+            <button id="close-archived-panel-btn">&times;</button>
+        </div>
+        <div id="archived-lists-container">
+            <!-- Archived lists populated by JS -->
+        </div>
+    </aside>
+
+    <!-- Modals -->
+    <div id="new-list-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Crear Nueva Lista</h3>
+            <input type="text" id="new-list-name" placeholder="Nombre de la Lista...">
+            <button id="confirm-new-list-btn">Crear</button>
+        </div>
+    </div>
+
+    <div id="add-store-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Añadir Nueva Tienda</h3>
+            <input type="text" id="new-store-name" placeholder="Nombre de la Tienda...">
+            <button id="confirm-add-store-btn">Añadir Tienda</button>
+        </div>
+    </div>
+
+    <div id="edit-store-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Editar Tienda</h3>
+            <input type="text" id="edit-store-name" placeholder="Nombre de la Tienda...">
+            <button id="confirm-edit-store-btn">Guardar Cambios</button>
+        </div>
+    </div>
+
+    <div id="add-category-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Añadir Categoría</h3>
+            <input type="text" id="new-category-name" placeholder="Nombre de Categoría...">
+            <button id="confirm-add-category-btn">Añadir Categoría</button>
+        </div>
+    </div>
+
+    <div id="edit-category-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Editar Categoría</h3>
+            <input type="text" id="edit-category-name" placeholder="Nombre de Categoría...">
+            <button id="confirm-edit-category-btn">Guardar Cambios</button>
+        </div>
+    </div>
+
+    <div id="edit-item-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Editar Artículo</h3>
+            <input type="text" id="edit-item-name" placeholder="Nombre del Artículo...">
+            <label for="edit-item-store-select">Mover a Tienda:</label>
+            <select id="edit-item-store-select"></select>
+            <label for="edit-item-category-select">Mover a Categoría:</label>
+            <select id="edit-item-category-select"></select>
+            <button id="confirm-edit-item-btn">Guardar Cambios</button>
+        </div>
+    </div>
+
+    <div id="duplicate-item-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Duplicar Artículo: <span id="duplicate-item-name-display"></span></h3>
+            <label for="duplicate-item-store-select">Duplicar en Tienda:</label>
+            <select id="duplicate-item-store-select"></select>
+            <label for="duplicate-item-category-select">Duplicar en Categoría:</label>
+            <select id="duplicate-item-category-select"></select>
+            <button id="confirm-duplicate-item-btn">Duplicar</button>
+        </div>
+    </div>
+
+    <!-- Templates -->
+    <template id="store-template">
+        <div class="store-container">
+            <div class="store-header">
+                <h3 class="store-name"></h3>
+                <div class="store-actions">
+                    <button class="move-store-up-btn" title="Mover Arriba">&#x2191;</button>
+                    <button class="move-store-down-btn" title="Mover Abajo">&#x2193;</button>
+                    <button class="add-category-btn">Añadir Categoría</button>
+                    <button class="edit-store-btn">Editar</button>
+                    <button class="delete-store-btn">Eliminar</button>
+                </div>
+            </div>
+            <div class="categories-wrapper" data-droppable-categories="true">
+                <!-- Categories inserted here -->
+            </div>
+        </div>
+    </template>
+
+    <template id="category-template">
+        <div class="category-container">
+            <div class="category-header">
+                <h4 class="category-name"></h4>
+                <div class="category-actions">
+                    <button class="move-category-up-btn" title="Mover Arriba">&#x2191;</button>
+                    <button class="move-category-down-btn" title="Mover Abajo">&#x2193;</button>
+                    <button class="edit-category-btn">Editar</button>
+                    <button class="delete-category-btn">Eliminar</button>
+                </div>
+            </div>
+            <div class="item-input-area">
+                <input type="text" class="new-item-input" name="new-item-name" placeholder="Añadir nuevo artículo...">
+                <button class="add-item-btn">Añadir</button>
+            </div>
+            <ul class="item-list" data-droppable="true">
+                <!-- Items inserted here -->
+            </ul>
+        </div>
+    </template>
+
+    <template id="item-template">
+        <li class="item" draggable="true">
+            <button class="add-to-shopping-list-btn" title="Añadir a Lista">+</button>
+            <span class="item-name"></span>
+            <div class="item-actions">
+                <button class="move-item-up-btn" title="Mover Arriba">&#x2191;</button>
+                <button class="move-item-down-btn" title="Mover Abajo">&#x2193;</button>
+                <button class="duplicate-item-btn" title="Duplicar Artículo">&#x2398;</button>
+                <button class="edit-item-btn" title="Editar Artículo">&#x270E;</button>
+                <button class="delete-item-btn" title="Eliminar Artículo">&times;</button>
+            </div>
+        </li>
+    </template>
+
+    <!-- Template for Shopping List Store Group -->
+    <template id="shopping-list-store-template">
+        <div class="shopping-list-store-group">
+            <h3 class="store-name"></h3>
+            <div class="shopping-list-categories-wrapper">
+                <!-- Shopping list categories inserted here -->
+            </div>
+        </div>
+    </template>
+
+    <!-- Template for Shopping List Category Group -->
+    <template id="shopping-list-category-template">
+        <div class="shopping-list-category-group">
+            <h4 class="category-name"></h4>
+            <ul class="shopping-list-item-list" data-droppable="true">
+                <!-- Shopping list items inserted here -->
+            </ul>
+        </div>
+    </template>
+
+    <!-- Template for Shopping List Item -->
+    <template id="shopping-list-item-template">
+        <li class="shopping-list-item" draggable="true">
+            <span class="drag-handle">&#x2630;</span>
+            <input type="checkbox" class="item-checkbox" id="">
+            <label class="item-label">
+                <span class="item-name"></span>
+            </label>
+            <button class="remove-from-list-btn" title="Quitar">&times;</button>
+        </li>
+    </template>
+
+    <!-- Template for Archived List Item -->
+    <template id="archived-list-template">
+        <div class="archived-list-item">
+            <span class="list-name"></span>
+            <span class="list-date"></span>
+            <div class="archived-list-actions">
+                <button class="restore-list-btn">Restaurar</button>
+                <button class="delete-archived-list-btn">Eliminar</button>
+            </div>
+        </div>
+    </template>
+
+    <script src="app.js"></script>
+</body>
+</html> 
