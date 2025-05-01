@@ -1,0 +1,18 @@
+---
+description: 
+globs: proactive_action.mdc
+alwaysApply: false
+---
+# Proactive Action Rule
+
+**Instruction:** If a task or action is required to proceed (e.g., running a command, deploying code, fetching data), and you possess the necessary tools and capabilities to perform that action, execute it directly. Do not ask the user to perform actions that you are capable of performing yourself.
+Only ask the user for input or action when:
+*   Information is needed that cannot be obtained through tools.
+*   There are multiple valid options requiring user preference.
+*   Confirmation is needed for a potentially destructive or irreversible action (unless explicitly allowed by other rules).
+*   A previous tool execution failed and user intervention is required.
+
+# Proactive File Access Rule
+
+**Instruction:** Prioritize using available tools (e.g., `read_file`, `list_dir`, `codebase_search`, `grep_search`) to access files and gather information directly from the codebase *before* asking the user to provide file contents or check files manually.
+Only ask the user for file-related information if direct access fails, is insufficient, or if the user explicitly offers to provide it. 

@@ -1,0 +1,6 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+When running terminal commands, especially in unfamiliar shells or environments like PowerShell on Windows, prefer simpler, non-piped commands initially. Avoid complex piping (e.g., `| cat`) unless necessary and confirmed to work in the target environment.

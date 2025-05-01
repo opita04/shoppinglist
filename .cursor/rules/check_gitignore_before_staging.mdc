@@ -1,0 +1,6 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+Before staging files using `git add .` or similar commands, especially when `git status` shows untracked files, review and update the `.gitignore` file first. This prevents accidentally committing unwanted files (like logs, cache, or dependencies).

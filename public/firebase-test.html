@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 3px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .success {
+            background-color: #e6ffe6;
+            border: 1px solid #99e699;
+        }
+        .error {
+            background-color: #ffe6e6;
+            border: 1px solid #e69999;
+        }
+        button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Firebase Connection Test</h1>
+        
+        <div class="test-section">
+            <h2>1. Firebase Module Import Test</h2>
+            <button id="test-imports">Test Firebase Imports</button>
+            <div id="import-result" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>2. Firebase Initialization Test</h2>
+            <button id="test-init">Test Firebase Initialization</button>
+            <div id="init-result" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>3. Firestore Collection Access Test</h2>
+            <button id="test-collections">Test Firestore Collections</button>
+            <div id="collections-result" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>4. Firestore Document Operations Test</h2>
+            <button id="test-doc-operations">Test Document Operations</button>
+            <div id="doc-operations-result" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>5. Firestore Real-time Listener Test</h2>
+            <button id="test-listener">Test Real-time Listener</button>
+            <div id="listener-result" class="result"></div>
+        </div>
+    </div>
+    
+    <script type="module">
+        // Test 1: Firebase Module Import
+        document.getElementById('test-imports').addEventListener('click', async () => {
+            const resultElement = document.getElementById('import-result');
+            resultElement.textContent = "Testing Firebase imports...\n";
+            
+            try {
+                // Test App import
+                resultElement.textContent += "Importing Firebase app module...\n";
+                const appModule = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js");
+                resultElement.textContent += "✓ Firebase app module imported successfully.\n";
+                
+                // Test Firestore import
+                resultElement.textContent += "Importing Firestore module...\n";
+                const firestoreModule = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js");
+                resultElement.textContent += "✓ Firestore module imported successfully.\n";
+                
+                // Check exports
+                resultElement.textContent += "\nChecking exports:\n";
+                resultElement.textContent += `- initializeApp: ${typeof appModule.initializeApp === 'function' ? 'Available' : 'Missing'}\n`;
+                resultElement.textContent += `- getFirestore: ${typeof firestoreModule.getFirestore === 'function' ? 'Available' : 'Missing'}\n`;
+                resultElement.textContent += `- collection: ${typeof firestoreModule.collection === 'function' ? 'Available' : 'Missing'}\n`;
+                resultElement.textContent += `- doc: ${typeof firestoreModule.doc === 'function' ? 'Available' : 'Missing'}\n`;
+                resultElement.textContent += `- onSnapshot: ${typeof firestoreModule.onSnapshot === 'function' ? 'Available' : 'Missing'}\n`;
+                
+                resultElement.classList.add('success');
+                resultElement.classList.remove('error');
+            } catch (error) {
+                resultElement.textContent += `\n❌ Error: ${error.message}\n`;
+                resultElement.textContent += `Stack: ${error.stack}\n`;
+                resultElement.classList.add('error');
+                resultElement.classList.remove('success');
+            }
+        });
+        
+        // Test 2: Firebase Initialization
+        document.getElementById('test-init').addEventListener('click', async () => {
+            const resultElement = document.getElementById('init-result');
+            resultElement.textContent = "Testing Firebase initialization...\n";
+            
+            try {
+                // Import modules
+                resultElement.textContent += "Importing Firebase modules...\n";
+                const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js");
+                const { getFirestore } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js");
+                resultElement.textContent += "✓ Firebase modules imported.\n";
+                
+                // Initialize Firebase
+                resultElement.textContent += "Initializing Firebase...\n";
+                const firebaseConfig = {
+                    apiKey: "AIzaSyCNgxPx2VcLvmK7z_7yrHy0KiVZrKxbXY8",
+                    authDomain: "shoppinglist-4d044.firebaseapp.com",
+                    projectId: "shoppinglist-4d044",
+                    storageBucket: "shoppinglist-4d044.appspot.com",
+                    messagingSenderId: "1072625332979",
+                    appId: "1:1072625332979:web:eee62a4c7af0b26d83e3fc"
+                };
+                
+                const app = initializeApp(firebaseConfig);
+                resultElement.textContent += `✓ Firebase app initialized successfully. App name: ${app.name}\n`;
+                
+                // Initialize Firestore
+                resultElement.textContent += "Initializing Firestore...\n";
+                const db = getFirestore(app);
+                resultElement.textContent += "✓ Firestore initialized successfully.\n";
+                
+                // Store references for other tests
+                window.testFirebaseApp = app;
+                window.testFirestoreDb = db;
+                
+                resultElement.classList.add('success');
+                resultElement.classList.remove('error');
+            } catch (error) {
+                resultElement.textContent += `\n❌ Error: ${error.message}\n`;
+                resultElement.textContent += `Stack: ${error.stack}\n`;
+                resultElement.classList.add('error');
+                resultElement.classList.remove('success');
+            }
+        });
+        
+        // Test 3: Firestore Collection Access
+        document.getElementById('test-collections').addEventListener('click', async () => {
+            const resultElement = document.getElementById('collections-result');
+            resultElement.textContent = "Testing Firestore collections access...\n";
+            
+            try {
+                // Import modules
+                resultElement.textContent += "Importing Firestore functions...\n";
+                const { collection, getDocs } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js");
+                resultElement.textContent += "✓ Firestore functions imported.\n";
+                
+                // Check if Firebase is initialized
+                if (!window.testFirestoreDb) {
+                    resultElement.textContent += "⚠️ Firestore not initialized. Run test 2 first.\n";
+                    return;
+                }
+                
+                // Try to access collections
+                resultElement.textContent += "Accessing collections...\n";
+                const listsRef = collection(window.testFirestoreDb, 'lists');
+                const masterStoresRef = collection(window.testFirestoreDb, 'masterStores');
+                const archivedListsRef = collection(window.testFirestoreDb, 'archivedLists');
+                resultElement.textContent += "✓ Collection references created.\n";
+                
+                // Try to get documents from lists collection
+                resultElement.textContent += "Fetching documents from 'lists' collection...\n";
+                const listsSnapshot = await getDocs(listsRef);
+                resultElement.textContent += `✓ Fetched ${listsSnapshot.docs.length} documents from 'lists' collection.\n`;
+                
+                // Try to get documents from masterStores collection
+                resultElement.textContent += "Fetching documents from 'masterStores' collection...\n";
+                const storesSnapshot = await getDocs(masterStoresRef);
+                resultElement.textContent += `✓ Fetched ${storesSnapshot.docs.length} documents from 'masterStores' collection.\n`;
+                
+                // Try to get documents from archivedLists collection
+                resultElement.textContent += "Fetching documents from 'archivedLists' collection...\n";
+                const archivedSnapshot = await getDocs(archivedListsRef);
+                resultElement.textContent += `✓ Fetched ${archivedSnapshot.docs.length} documents from 'archivedLists' collection.\n`;
+                
+                resultElement.classList.add('success');
+                resultElement.classList.remove('error');
+            } catch (error) {
+                resultElement.textContent += `\n❌ Error: ${error.message}\n`;
+                resultElement.textContent += `Stack: ${error.stack}\n`;
+                resultElement.classList.add('error');
+                resultElement.classList.remove('success');
+            }
+        });
+        
+        // Test 4: Firestore Document Operations
+        document.getElementById('test-doc-operations').addEventListener('click', async () => {
+            const resultElement = document.getElementById('doc-operations-result');
+            resultElement.textContent = "Testing Firestore document operations...\n";
+            
+            try {
+                // Import Firestore methods
+                resultElement.textContent += "Importing Firestore functions...\n";
+                const { collection, addDoc, doc, getDoc, updateDoc, deleteDoc } = 
+                    await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js");
+                resultElement.textContent += "✓ Firestore functions imported.\n";
+                
+                // Check if Firebase is initialized
+                if (!window.testFirestoreDb) {
+                    resultElement.textContent += "⚠️ Firestore not initialized. Run test 2 first.\n";
+                    return;
+                }
+                
+                // Create test collection reference
+                const testCollectionRef = collection(window.testFirestoreDb, 'test_collection');
+                
+                // 1. Add a document
+                resultElement.textContent += "Adding a test document...\n";
+                const newDoc = await addDoc(testCollectionRef, {
+                    name: "Test Document",
+                    timestamp: new Date(),
+                    testValue: Math.random().toString(36).substring(2, 10)
+                });
+                resultElement.textContent += `✓ Document created with ID: ${newDoc.id}\n`;
+                
+                // 2. Read the document
+                resultElement.textContent += "Reading the test document...\n";
+                const docRef = doc(window.testFirestoreDb, 'test_collection', newDoc.id);
+                const docSnap = await getDoc(docRef);
+                
+                if (docSnap.exists()) {
+                    resultElement.textContent += "✓ Document read successfully:\n";
+                    resultElement.textContent += JSON.stringify(docSnap.data(), null, 2) + "\n";
+                } else {
+                    resultElement.textContent += "❌ Document not found!\n";
+                }
+                
+                // 3. Update the document
+                resultElement.textContent += "Updating the test document...\n";
+                await updateDoc(docRef, {
+                    updated: true,
+                    updateTimestamp: new Date()
+                });
+                resultElement.textContent += "✓ Document updated successfully.\n";
+                
+                // 4. Read after update
+                resultElement.textContent += "Reading the updated document...\n";
+                const updatedDocSnap = await getDoc(docRef);
+                resultElement.textContent += "✓ Updated document data:\n";
+                resultElement.textContent += JSON.stringify(updatedDocSnap.data(), null, 2) + "\n";
+                
+                // 5. Delete the document
+                resultElement.textContent += "Deleting the test document...\n";
+                await deleteDoc(docRef);
+                resultElement.textContent += "✓ Document deleted successfully.\n";
+                
+                // 6. Verify deletion
+                resultElement.textContent += "Verifying deletion...\n";
+                const deletedDocSnap = await getDoc(docRef);
+                if (!deletedDocSnap.exists()) {
+                    resultElement.textContent += "✓ Document confirmed deleted.\n";
+                } else {
+                    resultElement.textContent += "❌ Document still exists after deletion!\n";
+                }
+                
+                resultElement.classList.add('success');
+                resultElement.classList.remove('error');
+            } catch (error) {
+                resultElement.textContent += `\n❌ Error: ${error.message}\n`;
+                resultElement.textContent += `Stack: ${error.stack}\n`;
+                resultElement.classList.add('error');
+                resultElement.classList.remove('success');
+            }
+        });
+        
+        // Test 5: Firestore Real-time Listener
+        document.getElementById('test-listener').addEventListener('click', async () => {
+            const resultElement = document.getElementById('listener-result');
+            resultElement.textContent = "Testing Firestore real-time listener...\n";
+            
+            try {
+                // Import Firestore methods
+                resultElement.textContent += "Importing Firestore functions...\n";
+                const { collection, addDoc, onSnapshot, Timestamp } = 
+                    await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js");
+                resultElement.textContent += "✓ Firestore functions imported.\n";
+                
+                // Check if Firebase is initialized
+                if (!window.testFirestoreDb) {
+                    resultElement.textContent += "⚠️ Firestore not initialized. Run test 2 first.\n";
+                    return;
+                }
+                
+                // Create test collection reference
+                const listenerTestCollection = collection(window.testFirestoreDb, 'listener_test');
+                
+                // Set up a real-time listener
+                resultElement.textContent += "Setting up a real-time listener...\n";
+                
+                // If there's an existing unsubscribe function, call it
+                if (window.testListenerUnsubscribe) {
+                    resultElement.textContent += "Cleaning up previous listener...\n";
+                    window.testListenerUnsubscribe();
+                }
+                
+                window.testListenerUnsubscribe = onSnapshot(listenerTestCollection, 
+                    (snapshot) => {
+                        // Add update from listener
+                        resultElement.textContent += `\n◉ Listener update received at ${new Date().toLocaleTimeString()}\n`;
+                        resultElement.textContent += `Documents in collection: ${snapshot.docs.length}\n`;
+                        snapshot.docChanges().forEach(change => {
+                            const changeData = change.doc.data();
+                            resultElement.textContent += `Document ${change.doc.id} ${change.type}:\n`;
+                            resultElement.textContent += JSON.stringify(changeData, null, 2) + '\n';
+                        });
+                    }, 
+                    (error) => {
+                        resultElement.textContent += `\n❌ Listener error: ${error.message}\n`;
+                    }
+                );
+                
+                resultElement.textContent += "✓ Listener set up successfully. Waiting for changes...\n";
+                resultElement.textContent += "Adding a test document to trigger the listener...\n";
+                
+                // Add a document to trigger the listener
+                await addDoc(listenerTestCollection, {
+                    name: "Listener Test",
+                    timestamp: Timestamp.now(),
+                    random: Math.random()
+                });
+                
+                resultElement.textContent += "✓ Test document added. Check for listener updates above.\n";
+                
+                resultElement.classList.add('success');
+                resultElement.classList.remove('error');
+            } catch (error) {
+                resultElement.textContent += `\n❌ Error: ${error.message}\n`;
+                resultElement.textContent += `Stack: ${error.stack}\n`;
+                resultElement.classList.add('error');
+                resultElement.classList.remove('success');
+            }
+        });
+    </script>
+</body>
+</html> 

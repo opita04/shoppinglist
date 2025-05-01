@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Una aplicación de lista de compras mobile-first">
+    <title>Lista de Compras</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script type="module">
+        // Log Firebase initialization process
+        // console.log("Setting up Firebase..."); // COMMENTED OUT
+        
+        // Monitor for global errors during Firebase initialization
+        const originalErrorHandler = window.onerror;
+        window.onerror = function(message, source, lineno, colno, error) {
+            console.error("Global error during Firebase setup:", {
+                message,
+                source,
+                lineno,
+                colno,
+                error: error ? { name: error.name, message: error.message, stack: error.stack } : 'No error object'
+            });
+            // Call original handler if it exists
+            if (typeof originalErrorHandler === 'function') {
+                return originalErrorHandler(message, source, lineno, colno, error);
+            }
+            return false;
+        };
+
+        try {
+            const firebaseImports = import("https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js")
+                .then(module => {
+                    // console.log("Firebase app module imported successfully"); // COMMENTED OUT
+                    return module.initializeApp;
+                })
+                .catch(error => {
+                    console.error("Error importing Firebase app module:", error);
+                    throw error;
+                });
+                
+            const firestoreImports = import("https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js")
+                .then(module => {
+                    // console.log("Firebase firestore module imported successfully"); // COMMENTED OUT
+                    return {
+                        getFirestore: module.getFirestore,
+                        collection: module.collection,
+                        addDoc: module.addDoc,
+                        getDocs: module.getDocs,
+                        doc: module.doc,
+                        onSnapshot: module.onSnapshot,
+                        updateDoc: module.updateDoc,
+                        deleteDoc: module.deleteDoc,
+                        query: module.query,
+                        orderBy: module.orderBy,
+                        where: module.where,
+                        runTransaction: module.runTransaction,
+                        setLogLevel: module.setLogLevel
+                    };
+                })
+                .catch(error => {
+                    console.error("Error importing Firestore module:", error);
+                    throw error;
+                });
+                
+            // Wait for all imports to complete
+            Promise.all([firebaseImports, firestoreImports])
+                .then(([initializeApp, firestoreModules]) => {
+                    // console.log("All Firebase modules imported successfully"); // COMMENTED OUT
+                    const { getFirestore, collection, addDoc, getDocs, doc, onSnapshot, updateDoc, deleteDoc, query, orderBy, where, runTransaction, setLogLevel } = firestoreModules;
+                    
+                    // console.log("Firebase modules loaded:", {
+                    //     initializeApp: !!initializeApp,
+                    //     getFirestore: !!getFirestore,
+                    //     collection: !!collection
+                    // }); // COMMENTED OUT
+                    
+                    // Original initialization code continues here
+                    const firebaseConfig = {
+                        apiKey: "AIzaSyCNgxPx2VcLvmK7z_7yrHy0KiVZrKxbXY8",
+                        authDomain: "shoppinglist-4d044.firebaseapp.com",
+                        projectId: "shoppinglist-4d044",
+                        storageBucket: "shoppinglist-4d044.appspot.com",
+                        messagingSenderId: "1072625332979",
+                        appId: "1:1072625332979:web:d947223832894cbab8e590",
+                        measurementId: "G-V2XL7M05GE"
+                    };
+
+                    // console.log("Initializing Firebase with config:", firebaseConfig); // COMMENTED OUT
+                    
+                    try {
+                        // console.log("Firebase initialization starting..."); // COMMENTED OUT
+                        const app = initializeApp(firebaseConfig);
+                        // console.log("Firebase app initialized successfully:", app.name); // COMMENTED OUT
+                        
+                        // console.log("Initializing Firestore..."); // COMMENTED OUT
+                        const db = getFirestore(app);
+                        // console.log("Firestore initialized successfully:", !!db); // COMMENTED OUT
+                        
+                        // --- ADDED --- Set Firestore log level to 'warn' to hide info/debug logs
+                        setLogLevel('warn'); 
+                        // -------------
+                        
+                        // Collection references
+                        // console.log("Setting up collection references..."); // COMMENTED OUT
+                        const listsRef = collection(db, 'lists');
+                        const masterStoresRef = collection(db, 'masterStores');
+                        const archivedListsRef = collection(db, 'archivedLists');
+                        // console.log("Collection references created:", {
+                        //     listsRef: !!listsRef,
+                        //     masterStoresRef: !!masterStoresRef,
+                        //     archivedListsRef: !!archivedListsRef
+                        // }); // COMMENTED OUT
+                        
+                        // Make Firestore and related functions globally accessible
+                        // console.log("Making Firebase references globally accessible..."); // COMMENTED OUT
+                        window.db = db;
+                        window.firebaseApp = app;
+                        
+                        // Define Firestore functions
+                        // console.log("Setting up Firestore functions..."); // COMMENTED OUT
+                        window.firestoreFunctions = {
+                            // Lists operations
+                            async createList(name) {
+                                console.log('[Firestore] Creating new list:', name);
+                                
+                                // DEBUG - Log list creation start
+                                console.log('[Firestore DEBUG] Starting list creation:', {
+                                    listName: name,
+                                    timestamp: new Date().toISOString()
+                                });
+                                
+                                try {
+                                    const newList = {
+                                        name,
+                                        createdAt: new Date(),
+                                        shoppingList: []
+                                    };
+                                    
+                                    // DEBUG - Log list structure before saving
+                                    console.log('[Firestore DEBUG] New list structure before saving:', {
+                                        listObject: newList,
+                                        shoppingListType: Array.isArray(newList.shoppingList) ? 'array' : typeof newList.shoppingList
+                                    });
+                                    
+                                    const docRef = await addDoc(listsRef, newList);
+                                    console.log('[Firestore] List created with ID:', docRef.id);
+                                    
+                                    // DEBUG - Log successful list creation
+                                    console.log('[Firestore DEBUG] List created successfully:', {
+                                        listId: docRef.id,
+                                        listName: name,
+                                        timestamp: new Date().toISOString()
+                                    });
+                                    
+                                    return { id: docRef.id, ...newList };
+                                } catch (error) {
+                                    console.error('[Firestore] Error creating list:', error);
+                                    
+                                    // DEBUG - Log detailed error information
+                                    // console.error('[Firestore DEBUG] List creation error details:', {
+                                    //     errorCode: error.code,
+                                    //     errorMessage: error.message,
+                                    //     timestamp: new Date().toISOString()
+                                    // });
+                                    
+                                    throw error;
+                                }
+                            },
+                            
+                            async updateList(listId, data) {
+                                console.log('[Firestore] Updating list:', listId, 'with data:', data);
+                                // DEBUG - Add detailed logging of the update operation
+                                console.log('[Firestore DEBUG] Update list operation details:', {
+                                    listId: listId,
+                                    dataKeys: Object.keys(data),
+                                    shoppingListLength: data.shoppingList ? data.shoppingList.length : 0,
+                                    timestamp: new Date().toISOString()
+                                });
+                                
+                                try {
+                                    await updateDoc(doc(db, 'lists', listId), data);
+                                    console.log('[Firestore] List updated successfully');
+                                    // DEBUG - Log success details
+                                    console.log('[Firestore DEBUG] Update success for list:', listId);
+                                } catch (error) {
+                                    console.error('[Firestore] Error updating list:', error);
+                                    // DEBUG - Log detailed error information
+                                    // console.error('[Firestore DEBUG] Update error details:', {
+                                    //     errorCode: error.code,
+                                    //     errorMessage: error.message,
+                                    //     listId: listId
+                                    // });
+                                    throw error;
+                                }
+                            },
+                            
+                            async deleteList(listId) {
+                                console.log('[Firestore] Deleting list:', listId);
+                                try {
+                                    await deleteDoc(doc(db, 'lists', listId));
+                                    console.log('[Firestore] List deleted successfully');
+                                } catch (error) {
+                                    console.error('[Firestore] Error deleting list:', error);
+                                    throw error;
+                                }
+                            },
+                            
+                            // Master stores operations
+                            async addMasterStore(name) {
+                                console.log('[Firestore] Adding master store:', name);
+                                try {
+                                    const newStore = {
+                                        name,
+                                        categories: [],
+                                        order: 0 // Default order
+                                    };
+                                    const docRef = await addDoc(masterStoresRef, newStore);
+                                    console.log('[Firestore] Master store added with ID:', docRef.id);
+                                    return { id: docRef.id, ...newStore };
+                                } catch (error) {
+                                    console.error('[Firestore] Error adding master store:', error);
+                                    throw error;
+                                }
+                            },
+                            
+                            // Add updateMasterStore function
+                            async updateMasterStore(storeId, data) {
+                                console.log(`[Firestore] Updating master store: ${storeId} with data:`, data);
+                                try {
+                                    await updateDoc(doc(db, 'masterStores', storeId), data);
+                                    console.log('[Firestore] Master store updated successfully');
+                                } catch (error) {
+                                    console.error('[Firestore] Error updating master store:', error);
+                                    throw error;
+                                }
+                            },
+                            
+                            // Add deleteMasterStore function
+                            async deleteMasterStore(storeId) {
+                                console.log(`[Firestore] Deleting master store: ${storeId}`);
+                                try {
+                                    await deleteDoc(doc(db, 'masterStores', storeId));
+                                    console.log('[Firestore] Master store deleted successfully');
+                                } catch (error) {
+                                    console.error('[Firestore] Error deleting master store:', error);
+                                    throw error;
+                                }
+                            },
+                            
+                            // Subscribe to all data
+                            subscribeToAllData(callbacks) {
+                                console.log('[Firestore] Setting up all data subscriptions');
+                                console.log('[Firestore DEBUG] Callbacks provided:', {
+                                    hasOnListsUpdate: typeof callbacks.onListsUpdate === 'function',
+                                    hasOnStoresUpdate: typeof callbacks.onStoresUpdate === 'function',
+                                    hasOnArchivedListsUpdate: typeof callbacks.onArchivedListsUpdate === 'function'
+                                });
+                                
+                                // Subscribe to master stores
+                                const storesUnsubscribe = onSnapshot(masterStoresRef, (snapshot) => {
+                                    try {
+                                        const stores = snapshot.docs.map(doc => ({
+                                            id: doc.id,
+                                            ...doc.data()
+                                        }));
+                                        console.log('[Firestore] Master stores update received:', stores);
+                                        callbacks.onStoresUpdate(stores);
+                                    } catch (error) {
+                                        console.error('[Firestore] Error processing master stores snapshot:', error);
+                                    }
+                                }, (error) => {
+                                    console.error('[Firestore] Error in master stores subscription:', error);
+                                });
+                                
+                                // Subscribe to active lists
+                                const listsUnsubscribe = onSnapshot(listsRef, (snapshot) => {
+                                    try {
+                                        console.log('[Firestore] Processing lists snapshot with', snapshot.docs.length, 'documents');
+                                        const lists = snapshot.docs.map(doc => ({
+                                            id: doc.id,
+                                            ...doc.data()
+                                        }));
+                                        console.log('[Firestore] Lists update received:', lists);
+                                        
+                                        // DEBUG - Log detailed information about the received lists
+                                        console.log('[Firestore DEBUG] Lists update details:', {
+                                            listCount: lists.length,
+                                            timestamp: new Date().toISOString(),
+                                            listSummary: lists.map(list => ({
+                                                id: list.id,
+                                                name: list.name,
+                                                hasShoppingList: !!list.shoppingList,
+                                                shoppingListLength: list.shoppingList ? list.shoppingList.length : 0
+                                            }))
+                                        });
+                                        
+                                        callbacks.onListsUpdate(lists);
+                                    } catch (error) {
+                                        console.error('[Firestore] Error processing lists snapshot:', error);
+                                        // console.error('[Firestore DEBUG] Snapshot processing error details:', {
+                                        //     errorMessage: error.message,
+                                        //     timestamp: new Date().toISOString(),
+                                        //     snapshotSize: snapshot.docs ? snapshot.docs.length : 'unknown'
+                                        // });
+                                        
+                                        // Try to recover by calling the callback with an empty list array
+                                        try {
+                                            console.log('[Firestore] Attempting recovery by passing empty lists array');
+                                            // Use a safe empty callback approach that won't rely on the instance's this context
+                                            if (typeof callbacks.onListsUpdate === 'function') {
+                                                callbacks.onListsUpdate([]);
+                                            }
+                                        } catch (callbackError) {
+                                            console.error('[Firestore] Recovery attempt failed:', callbackError);
+                                        }
+                                    }
+                                }, (error) => {
+                                    console.error('[Firestore] Error in lists subscription:', error);
+                                    // DEBUG - Log subscription error details
+                                    // console.error('[Firestore DEBUG] Lists subscription error:', {
+                                    //     errorCode: error.code,
+                                    //     errorMessage: error.message,
+                                    //     timestamp: new Date().toISOString()
+                                    // });
+                                    
+                                    // Try to recover by calling the callback with an empty list array
+                                    try {
+                                        console.log('[Firestore] Attempting recovery by passing empty lists array');
+                                        // Use a safe empty callback approach that won't rely on the instance's this context
+                                        if (typeof callbacks.onListsUpdate === 'function') {
+                                            callbacks.onListsUpdate([]);
+                                        }
+                                    } catch (callbackError) {
+                                        console.error('[Firestore] Recovery attempt failed:', callbackError);
+                                    }
+                                });
+                                
+                                // Subscribe to archived lists
+                                const archivedUnsubscribe = onSnapshot(archivedListsRef, (snapshot) => {
+                                    const archivedLists = snapshot.docs.map(doc => ({
+                                        id: doc.id,
+                                        ...doc.data()
+                                    }));
+                                    console.log('[Firestore] Archived lists update received:', archivedLists);
+                                    callbacks.onArchivedListsUpdate(archivedLists);
+                                }, (error) => {
+                                    console.error('[Firestore] Error in archived lists subscription:', error);
+                                });
+                                
+                                // Return function to unsubscribe from all
+                                return () => {
+                                    storesUnsubscribe();
+                                    listsUnsubscribe();
+                                    archivedUnsubscribe();
+                                };
+                            },
+
+                            // --- Archiving Functions ---
+                            async archiveList(listId) {
+                                console.log(`[Firestore] Archiving list: ${listId}`);
+                                const listDocRef = doc(db, 'lists', listId);
+                                const archivedListDocRef = doc(db, 'archivedLists', listId);
+                                
+                                try {
+                                    // Use a transaction to ensure atomicity
+                                    await runTransaction(db, async (transaction) => {
+                                        console.log(`[Firestore DEBUG] Transaction started for archiving list ${listId}`);
+                                        const listDoc = await transaction.get(listDocRef);
+                                        if (!listDoc.exists()) {
+                                            throw new Error("List document does not exist!");
+                                        }
+                                        
+                                        // Get data and add archived timestamp
+                                        const listData = listDoc.data();
+                                        const archivedData = { 
+                                            ...listData, 
+                                            archivedAt: new Date()
+                                        };
+                                        
+                                        console.log(`[Firestore DEBUG] Data to archive for list ${listId}:`, archivedData);
+                                        
+                                        // Create document in archivedLists
+                                        transaction.set(archivedListDocRef, archivedData);
+                                        console.log(`[Firestore DEBUG] Set operation scheduled for archived list ${listId}`);
+                                        
+                                        // Delete document from lists
+                                        transaction.delete(listDocRef);
+                                        console.log(`[Firestore DEBUG] Delete operation scheduled for original list ${listId}`);
+                                    });
+                                    console.log(`[Firestore] List ${listId} archived successfully via transaction`);
+                                } catch (error) {
+                                    console.error("[Firestore] Error archiving list:", error);
+                                    // console.error("[Firestore DEBUG] Archive error details:", {
+                                    //     listId: listId,
+                                    //     errorCode: error.code,
+                                    //     errorMessage: error.message,
+                                    //     timestamp: new Date().toISOString()
+                                    // });
+                                    throw error; // Re-throw error to be caught by the caller
+                                }
+                            },
+                            
+                            async restoreList(listId) {
+                                console.log(`[Firestore] Restoring list: ${listId}`);
+                                const listDocRef = doc(db, 'lists', listId);
+                                const archivedListDocRef = doc(db, 'archivedLists', listId);
+                                
+                                try {
+                                    await runTransaction(db, async (transaction) => {
+                                        console.log(`[Firestore DEBUG] Transaction started for restoring list ${listId}`);
+                                        const archivedDoc = await transaction.get(archivedListDocRef);
+                                        if (!archivedDoc.exists()) {
+                                            throw new Error("Archived list document does not exist!");
+                                        }
+                                        
+                                        const archivedData = archivedDoc.data();
+                                        // Remove the archivedAt field before restoring
+                                        const { archivedAt, ...restoredData } = archivedData;
+                                        
+                                        console.log(`[Firestore DEBUG] Data to restore for list ${listId}:`, restoredData);
+                                        
+                                        // Create document in lists
+                                        transaction.set(listDocRef, restoredData);
+                                         console.log(`[Firestore DEBUG] Set operation scheduled for restored list ${listId}`);
+                                         
+                                        // Delete document from archivedLists
+                                        transaction.delete(archivedListDocRef);
+                                        console.log(`[Firestore DEBUG] Delete operation scheduled for archived list ${listId}`);
+                                    });
+                                    console.log(`[Firestore] List ${listId} restored successfully via transaction`);
+                                } catch (error) {
+                                    console.error("[Firestore] Error restoring list:", error);
+                                    // console.error("[Firestore DEBUG] Restore error details:", {
+                                    //     listId: listId,
+                                    //     errorCode: error.code,
+                                    //     errorMessage: error.message,
+                                    //     timestamp: new Date().toISOString()
+                                    // });
+                                    throw error;
+                                }
+                            },
+                            
+                            async deleteArchivedList(listId) {
+                                console.log(`[Firestore] Permanently deleting archived list: ${listId}`);
+                                const archivedListDocRef = doc(db, 'archivedLists', listId);
+                                try {
+                                    await deleteDoc(archivedListDocRef);
+                                    console.log('[Firestore] Archived list deleted successfully');
+                                } catch (error) {
+                                    console.error('[Firestore] Error deleting archived list:', error);
+                                    // console.error("[Firestore DEBUG] Delete archived error details:", {
+                                    //     listId: listId,
+                                    //     errorCode: error.code,
+                                    //     errorMessage: error.message,
+                                    //     timestamp: new Date().toISOString()
+                                    // });
+                                    throw error;
+                                }
+                            }
+                            // --- End Archiving Functions ---
+                        };
+                        
+                        // console.log("Firebase setup complete - accessible via window.db, window.firebaseApp, and window.firestoreFunctions"); // COMMENTED OUT
+                        
+                        // Dispatch custom event to notify app that Firebase is ready
+                        // console.log("Dispatching firebase-ready event..."); // COMMENTED OUT
+                        const firebaseReadyEvent = new CustomEvent('firebase-ready');
+                        document.dispatchEvent(firebaseReadyEvent);
+                        // console.log("firebase-ready event dispatched."); // COMMENTED OUT
+                        
+                    } catch (error) {
+                        console.error("Error during Firebase initialization:", error);
+                        console.error("Detailed error info:", {
+                            name: error.name,
+                            message: error.message,
+                            stack: error.stack,
+                            code: error.code
+                        });
+                    } finally {
+                        // Restore original error handler
+                        window.onerror = originalErrorHandler;
+                    }
+                })
+                .catch(error => {
+                    console.error("Failed to initialize Firebase:", error);
+                    // Restore original error handler
+                    window.onerror = originalErrorHandler;
+                });
+                
+        } catch (importError) {
+            console.error("Error during Firebase module imports:", importError);
+            // Restore original error handler
+            window.onerror = originalErrorHandler;
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <h1>Lista de Compras</h1>
+        <div class="list-controls">
+            <label for="active-list-select">Lista Actual:</label>
+            <select id="active-list-select">
+                <!-- Active list options populated by JS -->
+            </select>
+            <button id="new-list-btn">Nueva Lista</button>
+            <button id="archive-list-btn">Archivar Lista</button>
+            <button id="view-archived-btn">Ver Archivadas</button>
+            <button id="export-data-btn" title="Exportar Datos">&#x2913;</button>
+            <button id="import-data-btn" title="Importar Datos">&#x2191;</button>
+            <input type="file" id="import-file-input" accept=".json" style="display: none;">
+        </div>
+    </header>
+
+    <!-- Firebase Loading Indicator -->
+    <div id="firebase-loading" class="loading-indicator">
+        <div class="loading-spinner"></div>
+        <p>Cargando datos desde Firebase...</p>
+    </div>
+
+    <main>
+        <!-- Item Management Panel -->
+        <section id="item-management">
+            <div class="section-header">
+                <h2>Gestión de Artículos</h2>
+                <button id="toggle-item-management" class="toggle-section" title="Expandir/Colapsar">Ocultar ▼</button>
+            </div>
+            <div id="item-management-content" class="section-content">
+                <div class="search-container">
+                    <input type="search" id="search-master-items-input" placeholder="Buscar artículos...">
+                </div>
+                <div class="store-controls">
+                    <button id="add-store-btn">Añadir Tienda</button>
+                    <select id="filter-store-select">
+                        <option value="all">Todas las Tiendas</option>
+                        <!-- Store filter options populated by JS -->
+                    </select>
+                    <div class="sort-control">
+                        <label for="sort-type-select">Ordenar:</label>
+                        <select id="sort-type-select">
+                            <option value="manual">Manual</option>
+                            <option value="alphabetical">Alfabético</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="store-containers" data-droppable-stores="true">
+                    <!-- Store sections populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Shopping List Panel -->
+        <section id="shopping-list">
+            <div class="section-header">
+                <h2>Lista de Compras</h2>
+                <button id="toggle-shopping-list" class="toggle-section" title="Expandir/Colapsar">Ocultar ▼</button>
+            </div>
+            <div id="shopping-list-content" class="section-content">
+                <h3 id="active-list-name-display" class="active-list-title"></h3>
+                <div id="shopping-list-items-container">
+                    <!-- Shopping list items populated by JS -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Side Panel for Archived Lists -->
+    <aside id="archived-lists-panel" class="side-panel">
+        <div class="panel-header">
+            <h3>Listas Archivadas</h3>
+            <button id="close-archived-panel-btn">&times;</button>
+        </div>
+        <div id="archived-lists-container">
+            <!-- Archived lists populated by JS -->
+        </div>
+    </aside>
+
+    <!-- Modals -->
+    <div id="new-list-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Crear Nueva Lista</h3>
+            <input type="text" id="new-list-name" placeholder="Nombre de la Lista...">
+            <button id="confirm-new-list-btn">Crear</button>
+        </div>
+    </div>
+
+    <div id="add-store-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Añadir Nueva Tienda</h3>
+            <input type="text" id="new-store-name" placeholder="Nombre de la Tienda...">
+            <button id="confirm-add-store-btn">Añadir Tienda</button>
+        </div>
+    </div>
+
+    <div id="edit-store-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Editar Tienda</h3>
+            <input type="text" id="edit-store-name" placeholder="Nombre de la Tienda...">
+            <button id="confirm-edit-store-btn">Guardar Cambios</button>
+        </div>
+    </div>
+
+    <div id="add-category-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Añadir Categoría</h3>
+            <input type="text" id="new-category-name" placeholder="Nombre de Categoría...">
+            <button id="confirm-add-category-btn">Añadir Categoría</button>
+        </div>
+    </div>
+
+    <div id="edit-category-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Editar Categoría</h3>
+            <input type="text" id="edit-category-name" placeholder="Nombre de Categoría...">
+            <button id="confirm-edit-category-btn">Guardar Cambios</button>
+        </div>
+    </div>
+
+    <div id="edit-item-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Editar Artículo</h3>
+            <input type="text" id="edit-item-name" placeholder="Nombre del Artículo...">
+            <label for="edit-item-store-select">Mover a Tienda:</label>
+            <select id="edit-item-store-select"></select>
+            <label for="edit-item-category-select">Mover a Categoría:</label>
+            <select id="edit-item-category-select"></select>
+            <button id="confirm-edit-item-btn">Guardar Cambios</button>
+        </div>
+    </div>
+
+    <div id="duplicate-item-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Duplicar Artículo: <span id="duplicate-item-name-display"></span></h3>
+            <label for="duplicate-item-store-select">Duplicar en Tienda:</label>
+            <select id="duplicate-item-store-select"></select>
+            <label for="duplicate-item-category-select">Duplicar en Categoría:</label>
+            <select id="duplicate-item-category-select"></select>
+            <button id="confirm-duplicate-item-btn">Duplicar</button>
+        </div>
+    </div>
+
+    <!-- Share URL Modal -->
+    <div id="share-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Compartir Lista</h3>
+            <p>Usa este enlace para acceder a tu lista desde otro dispositivo:</p>
+            <div class="share-url-container">
+                <input type="text" id="share-url-input" readonly>
+                <button id="copy-url-btn">Copiar</button>
+            </div>
+            <p class="share-instructions">Guarda el enlace como favorito o envíalo a tu otro dispositivo.</p>
+        </div>
+    </div>
+
+    <!-- Templates -->
+    <template id="store-template">
+        <div class="store-container">
+            <div class="store-header">
+                <h3 class="store-name"></h3>
+                <div class="store-actions">
+                    <button class="move-store-up-btn" title="Mover Arriba">⬆</button>
+                    <button class="move-store-down-btn" title="Mover Abajo">⬇</button>
+                    <button class="add-category-btn" title="Añadir Categoría">➕</button>
+                    <button class="edit-store-btn" title="Editar">✏️</button>
+                    <button class="delete-store-btn" title="Eliminar">🗑️</button>
+                </div>
+            </div>
+            <div class="categories-wrapper" data-droppable-categories="true">
+                <!-- Categories inserted here -->
+            </div>
+        </div>
+    </template>
+
+    <template id="category-template">
+        <div class="category-container">
+            <div class="category-header">
+                <h4 class="category-name"></h4>
+                <div class="category-actions">
+                    <button class="move-category-up-btn" title="Mover Arriba">⬆</button>
+                    <button class="move-category-down-btn" title="Mover Abajo">⬇</button>
+                    <button class="edit-category-btn" title="Editar">✏️</button>
+                    <button class="delete-category-btn" title="Eliminar">🗑️</button>
+                </div>
+            </div>
+            <div class="item-input-area">
+                <input type="text" class="new-item-input" name="new-item-name" placeholder="Añadir nuevo artículo...">
+                <button class="add-item-btn">Añadir</button>
+            </div>
+            <ul class="item-list" data-droppable="true">
+                <!-- Items inserted here -->
+            </ul>
+        </div>
+    </template>
+
+    <template id="item-template">
+        <li class="item" draggable="true">
+            <button class="add-to-shopping-list-btn" title="Añadir a Lista">+</button>
+            <span class="item-name"></span>
+            <div class="item-actions">
+                <button class="move-item-up-btn" title="Mover Arriba">&#x2191;</button>
+                <button class="move-item-down-btn" title="Mover Abajo">&#x2193;</button>
+                <button class="duplicate-item-btn" title="Duplicar Artículo">&#x2398;</button>
+                <button class="edit-item-btn" title="Editar Artículo">&#x270E;</button>
+                <button class="delete-item-btn" title="Eliminar Artículo">&times;</button>
+            </div>
+        </li>
+    </template>
+
+    <!-- Template for Shopping List Store Group -->
+    <template id="shopping-list-store-template">
+        <div class="shopping-list-store-group">
+            <h3 class="store-name"></h3>
+            <div class="shopping-list-categories-wrapper">
+                <!-- Shopping list categories inserted here -->
+            </div>
+        </div>
+    </template>
+
+    <!-- Template for Shopping List Category Group -->
+    <template id="shopping-list-category-template">
+        <div class="shopping-list-category-group">
+            <h4 class="category-name"></h4>
+            <ul class="shopping-list-item-list" data-droppable="true">
+                <!-- Shopping list items inserted here -->
+            </ul>
+        </div>
+    </template>
+
+    <!-- Template for Shopping List Item -->
+    <template id="shopping-list-item-template">
+        <li class="shopping-list-item" draggable="true">
+            <span class="drag-handle">&#x2630;</span>
+            <input type="checkbox" class="item-checkbox" id="">
+            <label class="item-label">
+                <span class="item-name"></span>
+            </label>
+            <button class="remove-from-list-btn" title="Quitar">&times;</button>
+        </li>
+    </template>
+
+    <!-- Template for Archived List Item -->
+    <template id="archived-list-template">
+        <div class="archived-list-item">
+            <span class="list-name"></span>
+            <span class="list-date"></span>
+            <div class="archived-list-actions">
+                <button class="restore-list-btn">Restaurar</button>
+                <button class="delete-archived-list-btn">Eliminar</button>
+            </div>
+        </div>
+    </template>
+
+    <!-- Remove old Firebase SDKs -->
+    <!-- <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script> -->
+    
+    <script type="module" src="app.js?v=1.2"></script>
+</body>
+</html> 

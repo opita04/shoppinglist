@@ -1,0 +1,6 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+When encountering intermittent ENOENT (file not found) errors, especially after confirming file existence with tools like list_dir, investigate potential file system timing, locking, or readiness issues more deeply. Consider adding logging *before* the operation that fails, not just reacting to the error message.
