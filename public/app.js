@@ -90,6 +90,7 @@ class ShoppingListApp {
             newListBtn: document.getElementById('new-list-btn'),
             archiveListBtn: document.getElementById('archive-list-btn'),
             viewArchivedBtn: document.getElementById('view-archived-btn'),
+            copyItemsBtn: document.getElementById('copy-items-btn'), // <-- Added
             exportDataBtn: document.getElementById('export-data-btn'),
             importDataBtn: document.getElementById('import-data-btn'),
             importFileInput: document.getElementById('import-file-input'),
@@ -131,8 +132,14 @@ class ShoppingListApp {
                 addCategory: document.getElementById('add-category-modal'),
                 editCategory: document.getElementById('edit-category-modal'),
                 editItem: document.getElementById('edit-item-modal'),
-                duplicateItem: document.getElementById('duplicate-item-modal')
-            }
+                duplicateItem: document.getElementById('duplicate-item-modal'),
+                share: document.getElementById('share-modal'), // Assumed ID for share modal
+                copyItems: document.getElementById('copy-items-modal') // <-- Added
+            },
+            // Specific elements within the copy modal (optional caching)
+            copySourceListSelect: document.getElementById('copy-source-list-select'),
+            copyDestinationListSelect: document.getElementById('copy-destination-list-select'), // <-- Added
+            confirmCopyItemsBtn: document.getElementById('confirm-copy-items-btn')
         };
         
         // console.log("DEBUG: DOM elements cached. Button existence:", {
@@ -403,6 +410,17 @@ class ShoppingListApp {
             // ---------------------------------
             
             // console.log("[App.js] Event listeners setup complete."); // LOG REMOVED
+
+            if (this.dom.copyItemsBtn) {
+                this.dom.copyItemsBtn.addEventListener('click', this.openCopyItemsModal.bind(this));
+            }
+            
+            // Add listener for source dropdown change *once* during setup
+            if (this.dom.copySourceListSelect) {
+                this.dom.copySourceListSelect.addEventListener('change', this.handleSourceListChangeInModal.bind(this)); // <-- Add this listener
+            } else {
+                console.warn("Copy source list select element not found during setup.");
+            }
         } catch (error) {
              console.error("[App.js] Error setting up event listeners:", error); // Keep error
         }
@@ -800,6 +818,10 @@ class ShoppingListApp {
 
     renderMasterStores() {
         // console.log("[App.js] renderMasterStores() called."); // LOG REMOVED
+        // --- ADDED DEBUG LOG ---
+        // console.log(`[SYNC DEBUG] renderMasterStores: Called. Current activeListId = ${this.activeListId}`); // REMOVED
+        // -----------------------
+
         if (!this.dom.storeContainers || !this.templates.store || !this.templates.category || !this.templates.item || !this.dom.filterStoreSelect || !this.dom.sortTypeSelect || !this.dom.searchMasterItemsInput) {
             console.error("[App.js] renderMasterStores - Missing DOM elements or templates:", { // Keep error
                 storeContainers: !!this.dom.storeContainers,
@@ -914,8 +936,7 @@ class ShoppingListApp {
                         const categoryContainer = categoryTemplate.querySelector('.category-container');
                         categoryContainer.dataset.categoryId = category.id;
                         categoryContainer.dataset.storeId = store.id;
-                        const categoryColor = this.categoryColors[categoryIndex % this.categoryColors.length];
-                        categoryContainer.style.borderLeftColor = categoryColor;
+                        categoryContainer.style.borderLeftColor = '#3498db'; // USE PRIMARY BLUE COLOR DIRECTLY
                         const categoryNameElement = categoryContainer.querySelector('.category-name');
                         if (categoryNameElement) categoryNameElement.textContent = category.name;
                         const itemListElement = categoryContainer.querySelector('.item-list');
@@ -929,7 +950,10 @@ class ShoppingListApp {
                             const activeList = this.getActiveList();
                             // const shoppingListItemIds = new Set(activeList?.shoppingList?.map(item => item.id) || []); // OLD check used unique ID
                             const shoppingListItemMasterIds = new Set(activeList?.shoppingList?.map(slItem => slItem.itemId) || []); // NEW check uses master item ID
-                            
+                            // --- ADDED DEBUG LOG ---
+                            // console.log(`[SYNC DEBUG] renderMasterStores: Rendering category '${category.name}'. Active List: ${activeList?.name || 'None'}. Items on active list (master IDs):`, shoppingListItemMasterIds); // REMOVED
+                            // -----------------------
+
                             itemsToRender.forEach(item => {
                                     const itemTemplate = this.templates.item.content.cloneNode(true);
                                     const itemElement = itemTemplate.querySelector('.item');
@@ -1053,6 +1077,7 @@ class ShoppingListApp {
 
                 const categoryTemplate = this.templates.shoppingListCategory.content.cloneNode(true);
                 const categoryGroupElement = categoryTemplate.querySelector('.shopping-list-category-group');
+                // console.log(`[DIAGNOSTIC] Shopping list category element for ${categoryGroup.categoryName} (ID: ${categoryId}) created. Initial borderLeftColor style: ${categoryGroupElement.style.borderLeftColor}`); // REMOVE LOG
                 const categoryNameElement = categoryGroupElement.querySelector('.category-name');
                 if (categoryNameElement) categoryNameElement.textContent = categoryGroup.categoryName;
                 
@@ -1218,21 +1243,41 @@ class ShoppingListApp {
     handleListChange() {
         const selectedListId = this.dom.activeListSelect.value;
         // console.log(`[App.js] handleListChange triggered. Selected List ID: ${selectedListId}`); // REMOVED LOG
+        // --- ADDED DEBUG LOG ---
+        // console.log(`[SYNC DEBUG] handleListChange: Selected List ID = ${selectedListId}`); // REMOVED
+        // -----------------------
 
         if (selectedListId) {
             this.activeListId = selectedListId;
             // console.log(`[App.js Log] handleListChange - About to save to localStorage. ID: ${this.activeListId}, Name: ${this.dom.activeListSelect.options[this.dom.activeListSelect.selectedIndex]?.text}`); // REMOVED LOG
             localStorage.setItem('shoppingListLastActiveId', this.activeListId);
             // console.log(`[App.js] handleListChange - Set activeListId to: ${this.activeListId}`); // REMOVED LOG
+            // --- ADDED DEBUG LOG ---
+            // console.log(`[SYNC DEBUG] handleListChange: Calling renderShoppingList for activeListId = ${this.activeListId}`); // REMOVED
+            // -----------------------
             this.renderShoppingList(); // Re-render the shopping list with the new active list
             this.updateActiveListNameDisplay(); // Update the name display
             this.toggleArchiveButtonState(); // Update archive button based on whether a list is selected
+            // --- ADDED DEBUG LOG ---
+            // Let's explicitly call renderMasterStores here FOR TESTING to see if it fixes the button states.
+            // This might not be the final solution, but helps diagnose.
+            // console.log(`[SYNC DEBUG] handleListChange: Explicitly calling renderMasterStores FOR TESTING`); // REMOVED
+            this.renderMasterStores();
+            // -----------------------
         } else {
             // console.warn("[App.js] handleListChange - No list selected (value is empty). Clearing display."); // Keep this warn
+             // --- ADDED DEBUG LOG ---
+            // console.log(`[SYNC DEBUG] handleListChange: No list selected.`); // REMOVED
+             // -----------------------
             this.activeListId = null;
             this.renderShoppingList(); // Clear the list display
             this.updateActiveListNameDisplay();
             this.toggleArchiveButtonState();
+             // --- ADDED DEBUG LOG ---
+            // Also re-render master stores when no list is selected (for testing)
+            // console.log(`[SYNC DEBUG] handleListChange: Explicitly calling renderMasterStores FOR TESTING (no list selected)`); // REMOVED
+            this.renderMasterStores();
+             // -----------------------
         }
         // No need to explicitly save data on list change, only when items are modified
     }
@@ -3137,4 +3182,213 @@ class ShoppingListApp {
         return grouped;
     }
     // ---------------------
+
+    // --- New Methods for Copy Items --- 
+
+    openCopyItemsModal() {
+        console.log("Opening Copy Items modal...");
+        const modalElement = this.dom.modals.copyItems;
+        const sourceSelect = this.dom.copySourceListSelect;
+        const destinationSelect = this.dom.copyDestinationListSelect;
+        const confirmButton = this.dom.confirmCopyItemsBtn;
+
+        if (!modalElement || !sourceSelect || !destinationSelect || !confirmButton) { 
+            console.error("Copy Items Modal Error: Missing one or more DOM elements.", { modal: !!modalElement, source: !!sourceSelect, dest: !!destinationSelect, confirm: !!confirmButton });
+            alert("Error: Could not open the copy dialog. UI elements missing.");
+            return; 
+        }
+        if (this.appData.lists.length < 2) { 
+            alert("Need at least two lists to copy items."); 
+            return; 
+        } 
+        
+        console.log(`[CopyModal LOG] activeListId before populating source: ${this.activeListId}`); // <-- ADD LOG
+        
+        // --- Populate Source Select --- 
+        sourceSelect.innerHTML = '';
+        const sourcePlaceholder = document.createElement('option');
+        sourcePlaceholder.value = "";
+        sourcePlaceholder.textContent = "-- Selecciona origen --";
+        sourcePlaceholder.disabled = true;
+        // DO NOT set selected here - let the value setting handle it later
+        sourceSelect.appendChild(sourcePlaceholder);
+
+        // let activeListSelectedInSource = false; // <-- REMOVE THIS FLAG
+        this.appData.lists.forEach(list => {
+            const sourceOption = document.createElement('option');
+            sourceOption.value = list.id;
+            sourceOption.textContent = list.name;
+            // Set selected attribute during creation if it matches active list
+            // if (list.id === this.activeListId) { // <-- REMOVE logic from here
+            //     console.log(`[CopyModal LOG] Setting option ${list.id} (${list.name}) selected = true`); // <-- REMOVE LOG
+            //     sourceOption.selected = true;
+            //     activeListSelectedInSource = true;
+            // }
+            sourceSelect.appendChild(sourceOption);
+        });
+        
+        // --- Set the value AFTER populating ---
+        if (this.activeListId && this.appData.lists.some(l => l.id === this.activeListId)) {
+            console.log(`[CopyModal LOG] Setting sourceSelect.value to activeListId: ${this.activeListId}`); // <-- ADD LOG
+            sourceSelect.value = this.activeListId; 
+        } else {
+             console.log(`[CopyModal LOG] activeListId (${this.activeListId}) is invalid or not found in lists, setting sourceSelect.value to ""`); // <-- ADD LOG
+             sourceSelect.value = ""; // Default to placeholder if activeListId is bad
+        }
+        
+        console.log(`[CopyModal LOG] After populating and setting value - sourceSelect.value: ${sourceSelect.value}`); // <-- ADD LOG
+        console.log(`[CopyModal LOG] After populating and setting value - sourceSelect.selectedIndex: ${sourceSelect.selectedIndex}`); // <-- ADD LOG
+        // ---------------------------------------
+        
+        // --- Populate Destination Select (based on initial source value) --- 
+        const initialSourceId = sourceSelect.value; // Read the value that is actually selected now
+        console.log(`[CopyModal LOG] Initial source ID for populating destination: ${initialSourceId}`); // <-- ADD LOG
+        this.populateDestinationListSelect(initialSourceId); 
+        // -----------------------------------------------------------
+
+        // Attach the confirmation listener...
+        const boundConfirmHandler = this.handleConfirmCopyItems.bind(this);
+        // Use replaceWith to clear previous listeners reliably
+        const newConfirmButton = confirmButton.cloneNode(true);
+        confirmButton.parentNode.replaceChild(newConfirmButton, confirmButton);
+        // confirmButton.replaceWith(confirmButton.cloneNode(true)); // Less safe if confirmButton reference is used elsewhere
+        this.dom.confirmCopyItemsBtn = modalElement.querySelector('#confirm-copy-items-btn'); // Re-cache the new button
+        this.dom.confirmCopyItemsBtn.addEventListener('click', boundConfirmHandler, { once: true });
+        console.log("Attached { once: true } listener to confirm copy button.");
+
+        // --- Open the modal BEFORE setting the value ---
+        this.openModal('copyItems');
+        // ----------------------------------------------
+
+        // --- Set the value AFTER populating AND *after* modal is likely visible ---
+        setTimeout(() => {
+            if (this.activeListId && this.appData.lists.some(l => l.id === this.activeListId)) {
+                console.log(`[CopyModal LOG - setTimeout] Setting sourceSelect.value to activeListId: ${this.activeListId}`); // <-- MOVE LOG
+                sourceSelect.value = this.activeListId;
+            } else {
+                console.log(`[CopyModal LOG - setTimeout] activeListId (${this.activeListId}) is invalid or not found in lists, setting sourceSelect.value to ""`); // <-- MOVE LOG
+                sourceSelect.value = ""; // Default to placeholder if activeListId is bad
+            }
+
+            console.log(`[CopyModal LOG - setTimeout] After setting value - sourceSelect.value: ${sourceSelect.value}`); // <-- MOVE LOG
+            console.log(`[CopyModal LOG - setTimeout] After setting value - sourceSelect.selectedIndex: ${sourceSelect.selectedIndex}`); // <-- MOVE LOG
+        }, 0); // Use a 0ms delay to push execution after current cycle
+        // -----------------------------------------------------------------------
+    }
+
+    async handleConfirmCopyItems() {
+        console.log("Confirm Copy Items button clicked.");
+        const sourceListId = this.dom.copySourceListSelect?.value;
+        const destinationListId = this.dom.copyDestinationListSelect?.value;
+        const confirmButton = this.dom.confirmCopyItemsBtn;
+
+        // --- Simplified Validation --- 
+        if (!sourceListId) {
+            alert("Please select a source list.");
+            // Re-attach listener on validation failure
+            if (confirmButton) confirmButton.addEventListener('click', this.handleConfirmCopyItems.bind(this), { once: true });
+            return;
+        }
+        if (!destinationListId) {
+            alert("Please select a destination list.");
+            // Re-attach listener on validation failure
+            if (confirmButton) confirmButton.addEventListener('click', this.handleConfirmCopyItems.bind(this), { once: true });
+            return;
+        }
+        // No need to check if they are the same, UI prevents it via populateDestinationListSelect
+        // --- End Simplified Validation ---
+        
+        console.log(`Attempting to copy items from ${sourceListId} to ${destinationListId}...`);
+        confirmButton.disabled = true;
+        confirmButton.textContent = 'Copiando...';
+
+        try {
+            const response = await fetch(`/api/lists/${destinationListId}/copy-from/${sourceListId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error('Error response from server:', data);
+                throw new Error(data.message || `Error ${response.status}`);
+            }
+
+            console.log('Copy successful:', data);
+            alert(data.message || `Successfully copied ${data.itemsCopied} item(s).`);
+            this.closeModal('copyItems');
+            // List updates handled by Firestore listener
+
+        } catch (error) {
+            console.error('Failed to copy items:', error);
+            alert(`Error copying items: ${error.message}`);
+            // Re-enable button and re-attach listener on error so user can retry
+            // *** REMOVE button reset from here ***
+            // if (confirmButton) {
+            //     confirmButton.disabled = false;
+            //     confirmButton.textContent = 'Copiar Items';
+            //     confirmButton.addEventListener('click', this.handleConfirmCopyItems.bind(this), { once: true });
+            //     console.log("Re-attached listener to confirm copy button after error.");
+            // }
+        } finally {
+             // ALWAYS reset button state here
+             if (confirmButton) {
+                 confirmButton.disabled = false;
+                 confirmButton.textContent = 'Copiar Items';
+                 // Re-attach listener ONLY if the modal is still open (likely due to an error)
+                 if (this.dom.modals.copyItems?.style.display !== 'none') {
+                     confirmButton.addEventListener('click', this.handleConfirmCopyItems.bind(this), { once: true });
+                     console.log("Re-attached listener to confirm copy button after error/modal still open.");
+                 }
+             }
+        }
+    }
+
+    // --- New helper to populate the destination list dropdown --- 
+    populateDestinationListSelect(excludeListId) {
+        const destinationSelect = this.dom.copyDestinationListSelect;
+        if (!destinationSelect) return;
+        
+        const currentDestValue = destinationSelect.value; // Remember current selection if possible
+        destinationSelect.innerHTML = ''; // Clear
+
+        // Add placeholder
+        const destPlaceholder = document.createElement('option');
+        destPlaceholder.value = "";
+        destPlaceholder.textContent = "-- Selecciona destino --";
+        destPlaceholder.disabled = true;
+        destPlaceholder.selected = true;
+        destinationSelect.appendChild(destPlaceholder);
+
+        let canRestoreSelection = false;
+        this.appData.lists.forEach(list => {
+            if (list.id !== excludeListId) { // Exclude the source list
+                const destOption = document.createElement('option');
+                destOption.value = list.id;
+                destOption.textContent = list.name;
+                destinationSelect.appendChild(destOption);
+                // Check if the current selection can be restored
+                if (list.id === currentDestValue) {
+                    canRestoreSelection = true;
+                }
+            }
+        });
+        
+        // Restore previous selection if it's still valid
+        if (canRestoreSelection) {
+            destinationSelect.value = currentDestValue;
+        } else {
+             destinationSelect.value = ""; // Default to placeholder
+        }
+    }
+    
+    // --- Event handler for source list change --- 
+    handleSourceListChangeInModal(event) {
+        const selectedSourceId = event.target.value;
+        // Repopulate destination, excluding the newly selected source
+        this.populateDestinationListSelect(selectedSourceId);
+    }
 } // Ensure the class definition is properly closed

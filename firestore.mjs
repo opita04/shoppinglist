@@ -1,10 +1,10 @@
-import { db } from './firebase.js';
-import { 
-    collection, 
-    addDoc, 
-    deleteDoc, 
-    doc, 
-    onSnapshot, 
+import { db } from './public/firebase.mjs';
+import {
+    collection,
+    addDoc,
+    deleteDoc,
+    doc,
+    onSnapshot,
     updateDoc,
     getDoc,
     setDoc,
@@ -36,12 +36,14 @@ export const createList = async (name) => {
 
 export const updateList = async (listId, data) => {
     // console.log('[Firestore] Updating list:', listId, 'with data:', data);
-    console.log('[Firestore Log] updateList called. listId:', listId, 'data:', JSON.parse(JSON.stringify(data)));
+    console.log(`[Firestore Log] updateList called. listId: ${listId} data:`, data);
     try {
         await updateDoc(doc(db, 'lists', listId), data);
         // console.log('[Firestore] List updated successfully');
+        console.log(`[Firestore Log] updateList successful for listId: ${listId}`);
     } catch (error) {
-        console.error('[Firestore] Error updating list:', error);
+        console.error(`[Firestore Error] Error updating list ${listId}:`, error);
+        console.error(`[Firestore Log] updateList failed for listId: ${listId} Error:`, error);
         throw error;
     }
 };
@@ -65,6 +67,27 @@ export const subscribeToList = (listId, callback) => {
     }, (error) => {
         console.error('[Firestore] Error in list subscription:', error);
     });
+};
+
+// Function to get a single list document's data once
+export const getList = async (listId) => {
+    // console.log(`[Firestore Log] getList called for listId: ${listId}`);
+    try {
+        const listDocRef = doc(db, 'lists', listId);
+        const listDocSnap = await getDoc(listDocRef);
+
+        if (listDocSnap.exists()) {
+            // console.log(`[Firestore Log] getList successful for listId: ${listId} Data:`, JSON.parse(JSON.stringify(listDocSnap.data())));
+            return listDocSnap.data();
+        } else {
+            console.warn(`[Firestore] No shopping list found with ID: ${listId}`);
+            throw new Error(`List with ID ${listId} not found`);
+        }
+    } catch (error) {
+        console.error('[Firestore] Error getting list:', error);
+        console.error(`[Firestore Log] getList failed for listId: ${listId} Error:`, error);
+        throw error;
+    }
 };
 
 // Master stores operations
@@ -127,11 +150,11 @@ export const archiveList = async (listId) => {
         // Get the list document
         const listDocRef = doc(db, 'lists', listId);
         const listDocSnap = await getDoc(listDocRef);
-        
+
         if (!listDocSnap.exists()) {
             throw new Error(`List with ID ${listId} not found`);
         }
-        
+
         // Add to archived lists
         const listData = listDocSnap.data();
         await addDoc(archivedListsRef, {
@@ -139,7 +162,7 @@ export const archiveList = async (listId) => {
             originalId: listId,
             archivedAt: new Date()
         });
-        
+
         // Delete from active lists
         await deleteDoc(listDocRef);
         // console.log('[Firestore] List archived successfully');
@@ -155,15 +178,15 @@ export const restoreArchivedList = async (listId) => {
         // Get the archived list document
         const archivedDocRef = doc(db, 'archivedLists', listId);
         const archivedDocSnap = await getDoc(archivedDocRef);
-        
+
         if (!archivedDocSnap.exists()) {
             throw new Error(`Archived list with ID ${listId} not found`);
         }
-        
+
         // Get the data and remove archivedAt field
         const archivedData = archivedDocSnap.data();
         const { archivedAt, originalId, ...dataToRestore } = archivedData;
-        
+
         // Add back to active lists
         let newDocRef;
         if (originalId) {
@@ -174,7 +197,7 @@ export const restoreArchivedList = async (listId) => {
             // Otherwise create a new document
             newDocRef = await addDoc(listsRef, dataToRestore);
         }
-        
+
         // Delete from archived lists
         await deleteDoc(archivedDocRef);
         // console.log('[Firestore] List restored successfully with ID:', newDocRef.id);
@@ -207,7 +230,7 @@ export const subscribeToAllData = (callbacks) => {
         subscribeToMasterStores(callbacks.onStoresUpdate),
         subscribeToArchivedLists(callbacks.onArchivedListsUpdate)
     ];
-    
+
     // Subscribe to all lists
     const q = query(listsRef, orderBy('createdAt', 'desc'));
     const listsUnsubscribe = onSnapshot(q, (snapshot) => {
@@ -220,11 +243,66 @@ export const subscribeToAllData = (callbacks) => {
     }, (error) => {
         console.error('[Firestore] Error in all lists subscription:', error);
     });
-    
+
     unsubscribers.push(listsUnsubscribe);
-    
+
     return () => {
         // console.log('[Firestore] Cleaning up all subscriptions');
         unsubscribers.forEach(unsubscribe => unsubscribe());
     };
-}; 
+};
+
+// --- New Function to Handle Copy Logic --- 
+export const copyListItems = async (sourceListId, destinationListId) => {
+    // console.log(`[Firestore Log] copyListItems called: Copy from ${sourceListId} to ${destinationListId}`);
+    try {
+        // 1. Fetch lists using existing getList (which has access to db)
+        // console.log('[Firestore Log] copyListItems - Fetching lists...');
+        const [sourceList, destinationList] = await Promise.all([
+            getList(sourceListId), // Call internal getList
+            getList(destinationListId) // Call internal getList
+        ]);
+
+        // getList already throws if not found, but double-check
+        if (!sourceList || !destinationList) {
+            throw new Error('Source or destination list not found during copy operation.');
+        }
+        // console.log('[Firestore Log] copyListItems - Lists fetched.');
+
+        // 2. Ensure shoppingList arrays exist
+        const sourceItems = sourceList.shoppingList || [];
+        const destinationItems = destinationList.shoppingList || [];
+        // console.log(`[Firestore Log] copyListItems - Source items count: ${sourceItems.length}, Dest items count: ${destinationItems.length}`);
+
+        // 3. Duplicate Check (comparing based on itemId)
+        const destinationItemIds = new Set(destinationItems.map(item => item.itemId)); // Create a Set of existing destination item *IDs*
+        const itemsToCopy = sourceItems.filter(item => !destinationItemIds.has(item.itemId)); // Keep source items whose itemId is NOT in the destination set
+        // console.log(`[Firestore Log] copyListItems - Items to copy count (using itemId): ${itemsToCopy.length}`);
+
+        if (itemsToCopy.length === 0) {
+            // console.log(`[Firestore Log] copyListItems - No new items to copy.`);
+            return { success: true, itemsCopied: 0, message: 'No new items to copy.' };
+        }
+
+        // 4. Combine and Update
+        const updatedShoppingList = [...destinationItems, ...itemsToCopy];
+        // console.log(`[Firestore Log] copyListItems - Updating destination list ${destinationListId} with ${updatedShoppingList.length} total items.`);
+        await updateList(destinationListId, { shoppingList: updatedShoppingList }); // Call internal updateList
+        // console.log(`[Firestore Log] copyListItems - Update successful for ${destinationListId}.`);
+
+        return {
+            success: true,
+            itemsCopied: itemsToCopy.length,
+            message: `Successfully copied ${itemsToCopy.length} item(s).`
+        };
+
+    } catch (error) {
+        console.error(`[Firestore Error] Error during copyListItems (${sourceListId} -> ${destinationListId}):`, error);
+        console.error(`[Firestore Log] copyListItems failed: ${error.message}`);
+        // Re-throw a more specific error or return an error object
+        throw new Error(`Failed to copy items: ${error.message}`);
+        // Or: return { success: false, error: error.message };
+    }
+};
+
+// ... rest of the file 

@@ -1,7 +1,7 @@
 /* Base Styles */
 :root {
     --primary-color: #3498db; /* Blue */
-    --secondary-color: #f39c12; /* Orange */
+    --secondary-color: #3498db; /* Orange -> CHANGED TO BLUE */
     --light-bg: #ecf0f1; /* Light Grey */
     --white: #ffffff;
     --dark-grey: #7f8c8d;
@@ -109,10 +109,12 @@ ul {
     font-weight: normal;
 }
 
-.list-controls select {
+.list-controls select#active-list-select { /* Target the header select specifically */
     max-width: 200px;
     flex-grow: 1;
     margin-bottom: 0; /* Override default */
+    color: #600000; /* Keep darker maroon hex code */
+    font-weight: bold; /* Changed back to bold */
 }
 
 /* Main Layout */
@@ -195,7 +197,7 @@ section {
     padding: 0.5rem;
     margin-top: 0.75rem;
     border-radius: 4px;
-    border-left: 4px solid var(--secondary-color);
+    border-left: 4px solid var(--primary-color);
 }
 
 .item-input-area {
@@ -301,7 +303,7 @@ section {
     padding: 0.75rem;
     margin-top: 0.75rem;
     border-radius: 4px;
-    border-left: 4px solid var(--secondary-color);
+    border-left: 4px solid var(--primary-color);
 }
 
 .shopping-list-item-list {
@@ -983,4 +985,35 @@ section {
 /* Hide loading indicator when data is loaded */
 .loading-indicator.hidden {
     display: none;
-} 
+}
+
+#shopping-list-content h3.active-list-title {
+    margin-bottom: 0; /* Adjust if needed */
+}
+
+.shopping-list-title-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem; /* Space between title and button */
+    margin-bottom: 1rem; /* Space below the title/button row */
+}
+
+/* Set shopping list title color */
+#active-list-name-display {
+    color: maroon;
+    font-weight: bold;
+}
+
+.copy-items-button {
+    /* Inherit general button styles */
+    padding: 0.3rem 0.8rem; /* Slightly smaller padding */
+    font-size: 0.85rem; /* Slightly smaller font */
+    background-color: var(--primary-color); /* Changed to primary color (blue) */
+}
+
+.copy-items-button:hover {
+    background-color: #2980b9; /* Changed to darker blue */
+}
+
+/* Item Management Specific */
+/* ... rest of the styles ... */ 

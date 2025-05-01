@@ -499,10 +499,11 @@
     <header>
         <h1>Lista de Compras</h1>
         <div class="list-controls">
-            <label for="active-list-select">Lista Actual:</label>
-            <select id="active-list-select">
-                <!-- Active list options populated by JS -->
-            </select>
+            <div class="list-selector">
+                <select id="active-list-select">
+                    <!-- Active list options populated by JS -->
+                </select>
+            </div>
             <button id="new-list-btn">Nueva Lista</button>
             <button id="archive-list-btn">Archivar Lista</button>
             <button id="view-archived-btn">Ver Archivadas</button>
@@ -556,7 +557,10 @@
                 <button id="toggle-shopping-list" class="toggle-section" title="Expandir/Colapsar">Ocultar ▼</button>
             </div>
             <div id="shopping-list-content" class="section-content">
-                <h3 id="active-list-name-display" class="active-list-title"></h3>
+                <div class="shopping-list-title-container">
+                    <h3 id="active-list-name-display" class="active-list-title"></h3>
+                    <button id="copy-items-btn" class="copy-items-button" title="Copiar items de otra lista">Copiar</button>
+                </div>
                 <div id="shopping-list-items-container">
                     <!-- Shopping list items populated by JS -->
                 </div>
@@ -657,6 +661,28 @@
                 <button id="copy-url-btn">Copiar</button>
             </div>
             <p class="share-instructions">Guarda el enlace como favorito o envíalo a tu otro dispositivo.</p>
+        </div>
+    </div>
+
+    <!-- New Modal for Copying Items -->
+    <div id="copy-items-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Copiar Items Entre Listas</h3>
+            
+            <label for="copy-source-list-select">Copiar desde (Lista Origen):</label>
+            <select id="copy-source-list-select">
+                <!-- Source list options populated by JS -->
+                <option value="">-- Selecciona origen --</option> 
+            </select>
+            
+            <label for="copy-destination-list-select">Copiar hacia (Lista Destino):</label>
+            <select id="copy-destination-list-select">
+                <!-- Destination list options populated by JS -->
+                <option value="">-- Selecciona destino --</option> 
+            </select>
+            
+            <button id="confirm-copy-items-btn" class="confirm-button">Copiar Items</button>
         </div>
     </div>
 
