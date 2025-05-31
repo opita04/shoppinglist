@@ -31,11 +31,9 @@ class ShoppingListApp {
         this.activeListId = null;
         this.draggedItemInfo = null; // { listType: 'master'/'shopping', itemId, element }
 
-        // --- ADDED LOADING FLAGS ---
-        this.storesLoaded = false;
+        // --- ADDED LOADING FLAGS ---\n        this.storesLoaded = false;
         this.listsLoaded = false;
-        // -------------------------
-
+        // -------------------------\n
         // Check for Firestore availability and set internal flag
         this._firestore = !!window.firestoreFunctions; 
         // console.log(`[App.js] Constructor - Firestore available: ${this._firestore}`); // LOG REMOVED
@@ -59,8 +57,7 @@ class ShoppingListApp {
         this.cacheTemplates();
     }
 
-    // --- Initialization ---
-    init() {
+    // --- Initialization ---\n    init() {
         // console.log("[App.js] init() started."); // LOG REMOVED
         
         try {
@@ -407,8 +404,7 @@ class ShoppingListApp {
              } else {
                  console.warn("[App.js] setupEventListeners() - archivedListsContainer DOM element not found!"); // Keep warn
              }
-            // ---------------------------------
-            
+            // ---------------------------------\n            
             // console.log("[App.js] Event listeners setup complete."); // LOG REMOVED
 
             if (this.dom.copyItemsBtn) {
@@ -426,8 +422,7 @@ class ShoppingListApp {
         }
     }
 
-    // --- Data Handling ---
-    loadData() {
+    // --- Data Handling ---\n    loadData() {
         // console.log("[App.js Log] loadData() called. Attempting to load data..."); // REMOVED LOG
         // console.log("[App.js] loadData() called."); // LOG REMOVED
         this.showLoadingIndicator();
@@ -468,8 +463,7 @@ class ShoppingListApp {
                              console.warn("[App.js] loadData - onListsUpdate - Firestore returned zero lists. No default list created automatically."); // Keep this warn
                              this.render(); // Render empty state
                         }
-                        // -------------------------------------
-                        
+                        // -------------------------------------\n                        
                         // console.log("[App.js] loadData() - onListsUpdate - Calling hideLoadingIndicator()..."); // LOG REMOVED
                         this.hideLoadingIndicator(); 
                     }).bind(this),
@@ -652,9 +646,7 @@ class ShoppingListApp {
             
             // console.log(`Section ${sectionName} toggled successfully. Collapsed: ${section.content.classList.contains('collapsed')}`);
         } catch (error) {
-            console.error(`Error toggling section ${sectionName}:`, error); // Keep this error?
-        }
-    }
+            console.error(`Error toggling section ${sectionName}:`, error); // Keep this error?\n        }\n    }
 
     initializeDefaultData() {
         this.appData = {
@@ -713,8 +705,7 @@ class ShoppingListApp {
                 })
                 .catch(error => {
                     console.error(`[App.js] saveData - Error updating list ${this.activeListId} in Firestore:`, error);
-                    // Optionally notify user or implement a retry?
-                });
+                    // Optionally notify user or implement a retry?\n                });
         } 
         // --- LocalStorage Path (still save locally as a backup or if Firestore is off) --- 
         else {
@@ -772,8 +763,7 @@ class ShoppingListApp {
         return category ? category.items.find(i => i.id === itemId) : null;
     }
 
-    // --- Rendering ---
-    render() {
+    // --- Rendering ---\n    render() {
         // console.log("Rendering UI...");
         
         // --- WAIT FOR INITIAL LOAD --- 
@@ -781,8 +771,7 @@ class ShoppingListApp {
             // console.log(`[App.js Log] Render called, but waiting for initial data. Stores: ${this.storesLoaded}, Lists: ${this.listsLoaded}`); // REMOVED LOG
             return; // Don't render until both initial loads are complete
         }
-        // -----------------------------
-        
+        // -----------------------------\n        
         // console.log("[App.js Log] Render proceeding - initial data loaded."); // REMOVED LOG
         this.hideLoadingIndicator(); // Hide indicator once both are loaded and we render
         
@@ -818,10 +807,8 @@ class ShoppingListApp {
 
     renderMasterStores() {
         // console.log("[App.js] renderMasterStores() called."); // LOG REMOVED
-        // --- ADDED DEBUG LOG ---
-        // console.log(`[SYNC DEBUG] renderMasterStores: Called. Current activeListId = ${this.activeListId}`); // REMOVED
-        // -----------------------
-
+        // --- ADDED DEBUG LOG ---\n        // console.log(`[SYNC DEBUG] renderMasterStores: Called. Current activeListId = ${this.activeListId}`); // REMOVED
+        // -----------------------\n
         if (!this.dom.storeContainers || !this.templates.store || !this.templates.category || !this.templates.item || !this.dom.filterStoreSelect || !this.dom.sortTypeSelect || !this.dom.searchMasterItemsInput) {
             console.error("[App.js] renderMasterStores - Missing DOM elements or templates:", { // Keep error
                 storeContainers: !!this.dom.storeContainers,
@@ -837,15 +824,13 @@ class ShoppingListApp {
         // console.log("[App.js] renderMasterStores - All required DOM elements found."); // LOG REMOVED
         // console.log("[App.js] renderMasterStores - Current masterStores data:", JSON.parse(JSON.stringify(this.appData.masterStores))); // LOG REMOVED
 
-        // --- Get Filter, Sort, Search Values ---
-        const selectedStoreId = this.dom.filterStoreSelect.value;
+        // --- Get Filter, Sort, Search Values ---\n        const selectedStoreId = this.dom.filterStoreSelect.value;
         const sortType = this.dom.sortTypeSelect.value;
         const searchTerm = this.dom.searchMasterItemsInput.value.trim().toLowerCase();
 
         this.dom.storeContainers.innerHTML = ''; // Clear display area
 
-        // --- Filter and Sort Data ---
-        let storesToProcess = [...this.appData.masterStores];
+        // --- Filter and Sort Data ---\n        let storesToProcess = [...this.appData.masterStores];
 
         // Apply Store Dropdown Filter
         if (selectedStoreId !== 'all') {
@@ -901,8 +886,7 @@ class ShoppingListApp {
             }));
         }
 
-        // --- Apply Sorting ---
-        let isManualSort = true;
+        // --- Apply Sorting ---\n        let isManualSort = true;
         if (sortType === 'alphabetical') {
             filteredStores.sort((a, b) => a.name.localeCompare(b.name));
             isManualSort = false;
@@ -910,8 +894,7 @@ class ShoppingListApp {
             // Manual order is the current order
         }
 
-        // --- Render Filtered and Sorted Data ---
-        if (filteredStores.length === 0 && (selectedStoreId !== 'all' || searchTerm)) {
+        // --- Render Filtered and Sorted Data ---\n        if (filteredStores.length === 0 && (selectedStoreId !== 'all' || searchTerm)) {
             const noResultsMsg = document.createElement('p');
             noResultsMsg.textContent = "No hay tiendas o artículos que coincidan con los filtros/búsqueda.";
             noResultsMsg.className = 'empty-state';
@@ -950,10 +933,8 @@ class ShoppingListApp {
                             const activeList = this.getActiveList();
                             // const shoppingListItemIds = new Set(activeList?.shoppingList?.map(item => item.id) || []); // OLD check used unique ID
                             const shoppingListItemMasterIds = new Set(activeList?.shoppingList?.map(slItem => slItem.itemId) || []); // NEW check uses master item ID
-                            // --- ADDED DEBUG LOG ---
-                            // console.log(`[SYNC DEBUG] renderMasterStores: Rendering category '${category.name}'. Active List: ${activeList?.name || 'None'}. Items on active list (master IDs):`, shoppingListItemMasterIds); // REMOVED
-                            // -----------------------
-
+                            // --- ADDED DEBUG LOG ---\n                            // console.log(`[SYNC DEBUG] renderMasterStores: Rendering category '${category.name}'. Active List: ${activeList?.name || 'None'}. Items on active list (master IDs):`, shoppingListItemMasterIds); // REMOVED
+                            // -----------------------\n
                             itemsToRender.forEach(item => {
                                     const itemTemplate = this.templates.item.content.cloneNode(true);
                                     const itemElement = itemTemplate.querySelector('.item');
@@ -1200,90 +1181,91 @@ class ShoppingListApp {
     }
     
     createList(name) {
-        // console.log(`[App.js] createList() called with name: "${name}"`); // LOG REMOVED
-        
-        // Create a new list in local memory first
+        // console.log(`[App.js] createList() called with name: \"${name}\"`);
+
+        // Create a new list object locally
         const newList = {
             id: this.generateId(),
             name: name,
-            createdAt: new Date().toISOString(),
-            shoppingList: []
+            createdAt: new Date().toISOString(), // Standardize to ISO string for local consistency
+            shoppingList: [] // New lists start with an empty shopping list
         };
         
-        // Add to our data
+        // Add the new list to the local application data
         this.appData.lists.push(newList);
-        this.activeListId = newList.id;
-        localStorage.setItem('shoppingListLastActiveId', this.activeListId);
         
-        // Try to save to Firestore if available
-        if (window.firestoreFunctions) {
-            window.firestoreFunctions.createList(name)
-                .then(serverList => {
-                    // The list will be updated via subscription
+        // Explicitly switch to the new list by setting it as the active list
+        this.activeListId = newList.id;
+        // Persist the new active list ID to localStorage so it's remembered across sessions
+        localStorage.setItem('shoppingListLastActiveId', this.activeListId);
+        console.log(`[App.js] createList - Switched activeListId to new list: ${this.activeListId} ("${name}")`);
+
+        // Attempt to save the new list to Firestore if available
+        if (this._firestore && window.firestoreFunctions && window.firestoreFunctions.createList) {
+            // console.log(`[App.js] createList - Attempting to create list \"${name}\" in Firestore.`);
+            window.firestoreFunctions.createList(name) // firestore.mjs createList returns the ID
+                .then(serverListId => {
+                    // console.log(`[App.js] createList - Firestore successfully initiated list creation. Server ID (if returned): ${serverListId}.`);
+                    // The Firestore onSnapshot listener (in loadData via subscribeToAllData)
+                    // should automatically pick up the new list from Firestore and update appData.lists.
+                    // This will typically replace the optimistically added local list if IDs match,
+                    // or add it if the optimistic ID was different and Firestore generated a new one.
+                    // The key is that the UI will reflect the Firestore state once synced.
                 })
                 .catch(error => {
-                    console.error("Error creating list in Firestore:", error);
-                    console.error("Error details:", {
-                        name: error.name,
-                        message: error.message,
-                        stack: error.stack,
-                        code: error.code
-                    });
+                    console.error(`[App.js] createList - Error creating list \"${name}\" in Firestore:`, error);
+                    // Consider how to handle this error for the user, e.g., notify that cloud save failed.
+                    // The list still exists locally.
                 });
         } else {
-            console.log("Firestore not available, skipping cloud save");
+            console.warn("[App.js] createList - Firestore not available or createList function missing. List created locally only.");
+            // If not using Firestore, the list is only local.
+            // No explicit saveData() call here as list creation primarily affects appData.lists,
+            // and render() will update UI. saveData() is more for item modifications within a list.
         }
         
-        // Render UI updates
+        // Explicitly update the entire UI to reflect the new list and its active state
+        // This will re-render the list select (selecting the new list) and the shopping list view (showing the new empty list).
+        console.log("[App.js] createList - Calling render() to update UI for new list.");
         this.render();
-        return newList;
+        
+        return newList; // Return the newly created list object for potential use by the caller
     }
     
     // Stub methods for potentially missing handlers
     handleListChange() {
         const selectedListId = this.dom.activeListSelect.value;
         // console.log(`[App.js] handleListChange triggered. Selected List ID: ${selectedListId}`); // REMOVED LOG
-        // --- ADDED DEBUG LOG ---
-        // console.log(`[SYNC DEBUG] handleListChange: Selected List ID = ${selectedListId}`); // REMOVED
-        // -----------------------
-
+        // --- ADDED DEBUG LOG ---\n        // console.log(`[SYNC DEBUG] handleListChange: Selected List ID = ${selectedListId}`); // REMOVED
+        // -----------------------\n
         if (selectedListId) {
             this.activeListId = selectedListId;
             // console.log(`[App.js Log] handleListChange - About to save to localStorage. ID: ${this.activeListId}, Name: ${this.dom.activeListSelect.options[this.dom.activeListSelect.selectedIndex]?.text}`); // REMOVED LOG
             localStorage.setItem('shoppingListLastActiveId', this.activeListId);
             // console.log(`[App.js] handleListChange - Set activeListId to: ${this.activeListId}`); // REMOVED LOG
-            // --- ADDED DEBUG LOG ---
-            // console.log(`[SYNC DEBUG] handleListChange: Calling renderShoppingList for activeListId = ${this.activeListId}`); // REMOVED
-            // -----------------------
-            this.renderShoppingList(); // Re-render the shopping list with the new active list
+            // --- ADDED DEBUG LOG ---\n            // console.log(`[SYNC DEBUG] handleListChange: Calling renderShoppingList for activeListId = ${this.activeListId}`); // REMOVED
+            // -----------------------\n            this.renderShoppingList(); // Re-render the shopping list with the new active list
             this.updateActiveListNameDisplay(); // Update the name display
             this.toggleArchiveButtonState(); // Update archive button based on whether a list is selected
-            // --- ADDED DEBUG LOG ---
-            // Let's explicitly call renderMasterStores here FOR TESTING to see if it fixes the button states.
+            // --- ADDED DEBUG LOG ---\n            // Let's explicitly call renderMasterStores here FOR TESTING to see if it fixes the button states.
             // This might not be the final solution, but helps diagnose.
             // console.log(`[SYNC DEBUG] handleListChange: Explicitly calling renderMasterStores FOR TESTING`); // REMOVED
             this.renderMasterStores();
-            // -----------------------
-        } else {
+            // -----------------------\n        } else {
             // console.warn("[App.js] handleListChange - No list selected (value is empty). Clearing display."); // Keep this warn
-             // --- ADDED DEBUG LOG ---
-            // console.log(`[SYNC DEBUG] handleListChange: No list selected.`); // REMOVED
-             // -----------------------
-            this.activeListId = null;
+             // --- ADDED DEBUG LOG ---\n            // console.log(`[SYNC DEBUG] handleListChange: No list selected.`); // REMOVED
+             // -----------------------\n            this.activeListId = null;
             this.renderShoppingList(); // Clear the list display
             this.updateActiveListNameDisplay();
             this.toggleArchiveButtonState();
-             // --- ADDED DEBUG LOG ---
-            // Also re-render master stores when no list is selected (for testing)
+             // --- ADDED DEBUG LOG ---\n            // Also re-render master stores when no list is selected (for testing)
             // console.log(`[SYNC DEBUG] handleListChange: Explicitly calling renderMasterStores FOR TESTING (no list selected)`); // REMOVED
             this.renderMasterStores();
-             // -----------------------
-        }
+             // -----------------------\n        }
         // No need to explicitly save data on list change, only when items are modified
     }
     
-    // --- ADDED METHOD ---
-    updateActiveListNameDisplay(overrideText = null) {
+    // --- ADDED METHOD ---\n    updateActiveListNameDisplay(overrideText = null) {
         if (!this.dom.activeListNameDisplay) {
             // console.warn("[App.js] updateActiveListNameDisplay - DOM element 'active-list-name-display' not found."); // Optional log
             return; 
@@ -1301,10 +1283,8 @@ class ShoppingListApp {
             this.dom.activeListNameDisplay.textContent = "No List Selected";
         }
     }
-    // --------------------
-    
-    // --- Modal Handling ---
-    openModal(modalName) {
+    // --------------------\n    
+    // --- Modal Handling ---\n    openModal(modalName) {
         // console.log(`[App.js] openModal called for: ${modalName}`); // LOG REMOVED
         const modalElement = this.dom.modals[modalName];
         
@@ -1491,8 +1471,7 @@ class ShoppingListApp {
                 const fileContent = e.target.result;
                 const importedObject = JSON.parse(fileContent);
 
-                // --- Data Validation ---
-                if (!importedObject || typeof importedObject !== 'object') {
+                // --- Data Validation ---\n                if (!importedObject || typeof importedObject !== 'object') {
                     throw new Error("El archivo importado no es un objeto JSON válido.");
                 }
                 
@@ -1535,8 +1514,7 @@ class ShoppingListApp {
                 
                 console.log("Local appData overwritten. Saving and re-rendering...");
 
-                // --- Persist & Render ---
-                 if (window.firestoreFunctions) {
+                // --- Persist & Render ---\n                 if (window.firestoreFunctions) {
                     // Firestore Sync: More complex. Simplest is often delete all existing then add all imported.
                     // This requires dedicated Firestore functions.
                     // For now, we'll just update local data and localStorage.
@@ -1587,9 +1565,18 @@ class ShoppingListApp {
         const listName = input.value.trim();
         
         if (listName) {
-            // console.log(`Attempting to create list with name: "${listName}"`);
+            // console.log(`Attempting to create list with name: \"${listName}\"`);
             try {
-                this.createList(listName); // This handles local data, Firestore, and rendering
+                const newList = this.createList(listName); // This sets activeListId and calls render()
+
+                // Explicitly ensure the UI updates to show the new list
+                if (newList) {
+                    console.log(`[App.js] handleCreateList - New list \"${newList.name}\" created. Explicitly re-rendering components.`);
+                    // activeListId is already set to newList.id by createList
+                    this.renderListSelect();          // Update dropdown to select the new list
+                    this.renderShoppingList();        // Display the content of the new (empty) list
+                    this.updateActiveListNameDisplay(); // Update the displayed name of the active list
+                }
                 
                 // Close modal directly to ensure it happens
                 // console.log("DEBUG: Directly closing modal after list creation");
@@ -1606,6 +1593,15 @@ class ShoppingListApp {
         } else {
             alert("Please enter a name for the new list.");
             input.focus(); // Focus the input for correction
+            // The {once: true} listener on #confirm-new-list-btn would have been consumed.
+            // Re-attach it so the user can try again.
+            const confirmButton = modalElement.querySelector('#confirm-new-list-btn');
+            if (confirmButton) {
+                // Clone the button and replace it to remove old listeners before adding a new one.
+                const newConfirmButton = confirmButton.cloneNode(true);
+                confirmButton.parentNode.replaceChild(newConfirmButton, confirmButton);
+                newConfirmButton.addEventListener('click', this.handleCreateList.bind(this), { once: true });
+            }
         }
     }
     
@@ -1634,8 +1630,7 @@ class ShoppingListApp {
             // console.log("[App.js] handleAddMasterStore - Store name is empty."); // LOG REMOVED
             alert("Please enter a name for the new store.");
             inputElement.focus();
-            // Re-attach listener since it was { once: true }
-            const confirmButton = modalElement.querySelector('#confirm-add-store-btn');
+            // Re-attach listener since it was { once: true }\n            const confirmButton = modalElement.querySelector('#confirm-add-store-btn');
             if (confirmButton) {
                  // console.log("[App.js] handleAddMasterStore - Re-attaching listener due to empty name."); // LOG REMOVED
                  confirmButton.addEventListener('click', this.handleAddMasterStore.bind(this), { once: true });
@@ -1711,7 +1706,7 @@ class ShoppingListApp {
              return;
         }
 
-        // console.log(`Attempting to update store ${storeId} to name: "${storeName}"`);
+        // console.log(`Attempting to update store ${storeId} to name: \"${storeName}\"`);
 
         if (window.firestoreFunctions && window.firestoreFunctions.updateMasterStore) {
             window.firestoreFunctions.updateMasterStore(storeId, { name: storeName })
@@ -1774,7 +1769,7 @@ class ShoppingListApp {
 
         store.categories.push(newCategory);
 
-        // console.log(`Attempting to add category "${categoryName}" to store ${storeId}`);
+        // console.log(`Attempting to add category \"${categoryName}\" to store ${storeId}`);
 
         if (window.firestoreFunctions && window.firestoreFunctions.updateMasterStore) {
             window.firestoreFunctions.updateMasterStore(storeId, JSON.parse(JSON.stringify(store)))
@@ -1829,7 +1824,7 @@ class ShoppingListApp {
              return;
         }
 
-        // console.log(`Attempting to update category ${categoryId} to name: "${categoryName}"`);
+        // console.log(`Attempting to update category ${categoryId} to name: \"${categoryName}\"`);
 
         if (window.firestoreFunctions && window.firestoreFunctions.updateMasterStore) {
             category.name = categoryName;
@@ -1892,7 +1887,7 @@ class ShoppingListApp {
             return;
         }
 
-        // console.log(`Attempting to update item ${itemId} to name: "${itemName}"`);
+        // console.log(`Attempting to update item ${itemId} to name: \"${itemName}\"`);
         
         // Update local data first (for responsiveness)
         const originalName = item.name;
@@ -1943,7 +1938,7 @@ class ShoppingListApp {
             return;
         }
         
-        console.log(`[App.js] handleDuplicateItemConfirm - Attempting to duplicate item "${originalItemName}" into store ${targetStoreId}, category ${targetCategoryId}`); // <-- ADD LOG
+        console.log(`[App.js] handleDuplicateItemConfirm - Attempting to duplicate item \"${originalItemName}\" into store ${targetStoreId}, category ${targetCategoryId}`); // <-- ADD LOG
 
         try {
             console.log("[App.js] handleDuplicateItemConfirm - Calling handleAddNewItem..."); // <-- ADD LOG
@@ -1981,8 +1976,7 @@ class ShoppingListApp {
         // Implement if needed
     }
     
-    // --- Specific Action Handlers (Called by delegated handlers or direct listeners) ---
-
+    // --- Specific Action Handlers (Called by delegated handlers or direct listeners) ---\n
     // Store Actions
     openEditStoreModal(storeId) {
         console.log(`DEBUG: Entered openEditStoreModal for store ${storeId}`);
@@ -2011,8 +2005,7 @@ class ShoppingListApp {
         console.log("DEBUG: Finding confirm button for edit store: ", confirmButton);
         confirmButton.addEventListener('click', boundHandler, { once: true }); // Use once: true
         console.log(`DEBUG: Attached { once: true } click listener to confirm-edit-store-btn for store ${storeId}.`);
-        // -------------------------------
-
+        // -------------------------------\n
         // Show the modal using the generic method FIRST
         this.openModal('editStore'); 
         
@@ -2034,7 +2027,7 @@ class ShoppingListApp {
         }
 
         // Confirmation
-        if (confirm(`Are you sure you want to delete the entire store "${storeName}" and all its categories and items? This cannot be undone.`)) {
+        if (confirm(`Are you sure you want to delete the entire store \"${storeName}\" and all its categories and items? This cannot be undone.`)) {
             console.log(`Confirmed deletion for store ${storeId} (${storeName})`);
 
             // Call Firestore delete function
@@ -2144,13 +2137,12 @@ class ShoppingListApp {
         modalElement.dataset.editingStoreId = storeId;
         modalElement.dataset.editingCategoryId = categoryId;
         
-        // --- Attach listener directly ---
+        // --- Attach listener directly --- 
         const boundHandler = this.handleEditCategory.bind(this);
         console.log("DEBUG: Finding confirm button for edit category: ", confirmButton);
         confirmButton.addEventListener('click', boundHandler, { once: true });
         console.log(`DEBUG: Attached { once: true } click listener to confirm-edit-category-btn for category ${categoryId}.`);
-        // ------------------------------
-        
+        // ------------------------------\n        
         // Show modal FIRST
         this.openModal('editCategory'); 
         
@@ -2173,7 +2165,7 @@ class ShoppingListApp {
         }
 
         // Confirmation
-        if (confirm(`Are you sure you want to delete the category "${categoryName}" and all its items? This cannot be undone.`)) {
+        if (confirm(`Are you sure you want to delete the category \"${categoryName}\" and all its items? This cannot be undone.`)) {
             console.log(`Confirmed deletion for category ${categoryId} (${categoryName})`);
             
              // Find the index of the category to remove it
@@ -2189,8 +2181,7 @@ class ShoppingListApp {
                     window.firestoreFunctions.updateMasterStore(storeId, storeDataToUpdate)
                         .then(() => {
                             console.log(`Store ${storeId} updated successfully in Firestore after deleting category ${categoryId}.`);
-                            // Let subscription handle UI update?
-                            this.renderMasterStores(); // Re-render for immediate feedback
+                            // Let subscription handle UI update?\n                            this.renderMasterStores(); // Re-render for immediate feedback
                         })
                         .catch(error => {
                              console.error(`Error updating store ${storeId} after deleting category ${categoryId}:`, error);
@@ -2210,7 +2201,7 @@ class ShoppingListApp {
         }
     }
     handleAddNewItem(storeId, categoryId, itemName) {
-        console.log(`[App.js] handleAddNewItem called with: storeId=${storeId}, categoryId=${categoryId}, itemName="${itemName}"`); // <-- ADD LOG
+        console.log(`[App.js] handleAddNewItem called with: storeId=${storeId}, categoryId=${categoryId}, itemName=\"${itemName}\"`); // <-- ADD LOG
 
         const store = this.appData.masterStores.find(s => s.id === storeId);
         if (!store) {
@@ -2345,7 +2336,7 @@ class ShoppingListApp {
         if (alreadyExists) {
             console.log(`Item ${masterItem.name} (Master ID: ${masterItem.id}) already exists in the shopping list.`); // Updated log
             // Optionally provide feedback to the user, e.g., flash the existing item
-            alert(`"${masterItem.name}" ya está en la lista.`);
+            alert(`\"${masterItem.name}\" ya está en la lista.`);
             return;
         }
 
@@ -2495,7 +2486,7 @@ class ShoppingListApp {
         }
 
         // Confirmation dialog
-        if (confirm(`Are you sure you want to delete the master item "${itemName}"? This cannot be undone.`)) {
+        if (confirm(`Are you sure you want to delete the master item \"${itemName}\"? This cannot be undone.`)) {
             console.log(`Confirmed deletion for item ${itemId} (${itemName})`);
             
             // Find the index of the item to remove it
@@ -2702,7 +2693,7 @@ class ShoppingListApp {
         }
         
         // Confirmation
-        if (confirm(`Are you sure you want to permanently delete the archived list "${listName}"? This cannot be undone.`)) {
+        if (confirm(`Are you sure you want to permanently delete the archived list \"${listName}\"? This cannot be undone.`)) {
             console.log(`Confirmed deletion for archived list ${listId} (${listName})`);
             
             // Optimistic UI update
@@ -2738,8 +2729,7 @@ class ShoppingListApp {
         }
     }
     
-    // --- Delegated Event Handlers ---
-    handleMasterListEvents(event) {
+    // --- Delegated Event Handlers ---\n    handleMasterListEvents(event) {
         // Function body completely replaced with correct logic
         const target = event.target;
 
@@ -2753,8 +2743,7 @@ class ShoppingListApp {
         const categoryId = categoryContainer?.dataset.categoryId || itemElement?.dataset.categoryId;
         const storeId = storeContainer?.dataset.storeId || categoryContainer?.dataset.storeId || itemElement?.dataset.storeId;
 
-        // --- Store Actions ---
-        if (target.classList.contains('edit-store-btn') && storeId) {
+        // --- Store Actions ---\n        if (target.classList.contains('edit-store-btn') && storeId) {
             this.openEditStoreModal(storeId);
         } else if (target.classList.contains('delete-store-btn') && storeId) {
             this.handleDeleteMasterStore(storeId);
@@ -2765,8 +2754,7 @@ class ShoppingListApp {
         } else if (target.classList.contains('move-store-down-btn') && storeId) {
             this.moveStore(storeId, 'down');
         
-        // --- Category Actions ---
-        } else if (target.classList.contains('edit-category-btn') && storeId && categoryId) {
+        // --- Category Actions ---\n        } else if (target.classList.contains('edit-category-btn') && storeId && categoryId) {
              this.openEditCategoryModal(storeId, categoryId);
         } else if (target.classList.contains('delete-category-btn') && storeId && categoryId) {
              this.handleDeleteCategory(storeId, categoryId);
@@ -2782,8 +2770,7 @@ class ShoppingListApp {
         } else if (target.classList.contains('move-category-down-btn') && storeId && categoryId) {
             this.moveCategory(storeId, categoryId, 'down');
 
-        // --- Item Actions ---
-        } else if (target.classList.contains('add-to-shopping-list-btn') && storeId && categoryId && itemId) {
+        // --- Item Actions ---\n        } else if (target.classList.contains('add-to-shopping-list-btn') && storeId && categoryId && itemId) {
             const activeList = this.getActiveList();
             // const alreadyExists = activeList?.shoppingList?.some(item => item.id === itemId); // OLD check
             const alreadyExists = activeList?.shoppingList?.some(slItem => slItem.itemId === itemId); // NEW check compares master ID (itemId) to shopping list item's itemId
@@ -2864,8 +2851,7 @@ class ShoppingListApp {
         }
     }
 
-    // --- Specific Modal Openers that Attach Listeners ---
-    openAddStoreModal() {
+    // --- Specific Modal Openers that Attach Listeners ---\n    openAddStoreModal() {
         console.log("DEBUG: Entered openAddStoreModal");
         const modalElement = this.dom.modals.addStore;
         const confirmButton = modalElement?.querySelector('#confirm-add-store-btn');
@@ -2920,8 +2906,7 @@ class ShoppingListApp {
             console.error("DEBUG: handleRemoveItemFromShoppingList - Cannot remove item: shoppingList is not an array.");
             // Attempt recovery
             activeList.shoppingList = []; 
-            // return; // Maybe proceed after recovery attempt?
-        }
+            // return; // Maybe proceed after recovery attempt?\n        }
 
         const initialLength = activeList.shoppingList.length;
         // const itemIndex = activeList.shoppingList.findIndex(item => item.id === itemId); // Find by master ID - CHANGED
@@ -2941,15 +2926,12 @@ class ShoppingListApp {
         activeList.shoppingList.splice(itemIndex, 1);
         // console.log(`DEBUG: handleRemoveItemFromShoppingList - Removed item ${itemId} locally. New length: ${activeList.shoppingList.length}`); // CHANGED
         console.log(`DEBUG: handleRemoveItemFromShoppingList - Removed item ${shoppingListItemId} locally. New length: ${activeList.shoppingList.length}`);
-        // -----------------------------
-
-        // --- Trigger UI Update (Optimistic) ---
-        console.log("DEBUG: handleRemoveItemFromShoppingList - Triggering optimistic UI render...");
+        // -----------------------------\n
+        // --- Trigger UI Update (Optimistic) ---\n        console.log("DEBUG: handleRemoveItemFromShoppingList - Triggering optimistic UI render...");
         this.renderShoppingList();
         this.renderMasterStores(); // Re-render master to update the button state
         console.log("DEBUG: handleRemoveItemFromShoppingList - Optimistic UI render complete.");
-        // ---------------------------------------
-        
+        // ---------------------------------------\n        
         // --- Update Firestore --- 
         if (window.firestoreFunctions && window.firestoreFunctions.updateList) {
             // Send the *entire updated* shoppingList array
@@ -2975,8 +2957,7 @@ class ShoppingListApp {
                     this.renderShoppingList();
                     this.renderMasterStores();
                     console.log(`DEBUG: handleRemoveItemFromShoppingList - Revert render complete.`);
-                    // ----------------------------------
-                });
+                    // ----------------------------------\n                });
             } else {
             console.warn("DEBUG: handleRemoveItemFromShoppingList - Firestore function updateList not available. Removing locally only.");
              if (!window.db) {
@@ -3031,8 +3012,7 @@ class ShoppingListApp {
                 .catch(error => {
                     console.error(`DEBUG: moveItem - Error updating Firestore for store ${storeId}:`, error);
                     alert(`Failed to save item order change. Error: ${error.message}`);
-                    // Optional: Revert local change?
-                });
+                    // Optional: Revert local change?\n                });
         } else {
             console.warn("DEBUG: moveItem - Firestore function updateMasterStore not available. Saving locally.");
                 if (!window.db) { this.saveData(); }
@@ -3109,8 +3089,7 @@ class ShoppingListApp {
                 })
                 .catch(error => {
                     console.error(`Error updating list in Firestore after toggling item ${shoppingListItemId}:`, error);
-                    // Revert local data change on error?
-                    item.checked = !isChecked; // Revert
+                    // Revert local data change on error?\n                    item.checked = !isChecked; // Revert
                     this.renderShoppingList(); // Re-render reverted state
                     alert("Failed to update item status in the cloud.");
                 });
@@ -3120,10 +3099,8 @@ class ShoppingListApp {
             this.renderShoppingList(); // Re-render UI based on updated local data
         }
     }
-    // ---------------------
-
-    // --- ADDED METHOD ---
-    toggleArchiveButtonState() {
+    // ---------------------\n
+    // --- ADDED METHOD ---\n    toggleArchiveButtonState() {
         if (!this.dom.archiveListBtn) {
             // console.warn("[App.js] toggleArchiveButtonState - Archive button DOM element not found.");
             return;
@@ -3131,8 +3108,7 @@ class ShoppingListApp {
         // Disable if no list is active OR if there is only one list left.
         this.dom.archiveListBtn.disabled = !this.activeListId || this.appData.lists.length <= 1;
     }
-    // --------------------
-
+    // --------------------\n
     // --- ADDED METHOD --- 
     // Groups items from a shopping list array by store and then category
     groupShoppingListItems(shoppingListItems) {
@@ -3181,8 +3157,7 @@ class ShoppingListApp {
         // console.log("[App.js] groupShoppingListItems - Grouped items result:", JSON.parse(JSON.stringify(grouped))); // Optional debug log
         return grouped;
     }
-    // ---------------------
-
+    // ---------------------\n
     // --- New Methods for Copy Items --- 
 
     openCopyItemsModal() {
@@ -3223,31 +3198,26 @@ class ShoppingListApp {
             //     console.log(`[CopyModal LOG] Setting option ${list.id} (${list.name}) selected = true`); // <-- REMOVE LOG
             //     sourceOption.selected = true;
             //     activeListSelectedInSource = true;
-            // }
-            sourceSelect.appendChild(sourceOption);
+            // }\n            sourceSelect.appendChild(sourceOption);
         });
         
-        // --- Set the value AFTER populating ---
-        if (this.activeListId && this.appData.lists.some(l => l.id === this.activeListId)) {
+        // --- Set the value AFTER populating ---\n        if (this.activeListId && this.appData.lists.some(l => l.id === this.activeListId)) {
             console.log(`[CopyModal LOG] Setting sourceSelect.value to activeListId: ${this.activeListId}`); // <-- ADD LOG
             sourceSelect.value = this.activeListId; 
         } else {
-             console.log(`[CopyModal LOG] activeListId (${this.activeListId}) is invalid or not found in lists, setting sourceSelect.value to ""`); // <-- ADD LOG
+             console.log(`[CopyModal LOG] activeListId (${this.activeListId}) is invalid or not found in lists, setting sourceSelect.value to \"\"`); // <-- ADD LOG
              sourceSelect.value = ""; // Default to placeholder if activeListId is bad
         }
         
         console.log(`[CopyModal LOG] After populating and setting value - sourceSelect.value: ${sourceSelect.value}`); // <-- ADD LOG
         console.log(`[CopyModal LOG] After populating and setting value - sourceSelect.selectedIndex: ${sourceSelect.selectedIndex}`); // <-- ADD LOG
-        // ---------------------------------------
-        
+        // ---------------------------------------\n        
         // --- Populate Destination Select (based on initial source value) --- 
         const initialSourceId = sourceSelect.value; // Read the value that is actually selected now
         console.log(`[CopyModal LOG] Initial source ID for populating destination: ${initialSourceId}`); // <-- ADD LOG
         this.populateDestinationListSelect(initialSourceId); 
-        // -----------------------------------------------------------
-
-        // Attach the confirmation listener...
-        const boundConfirmHandler = this.handleConfirmCopyItems.bind(this);
+        // -----------------------------------------------------------\n
+        // Attach the confirmation listener...\n        const boundConfirmHandler = this.handleConfirmCopyItems.bind(this);
         // Use replaceWith to clear previous listeners reliably
         const newConfirmButton = confirmButton.cloneNode(true);
         confirmButton.parentNode.replaceChild(newConfirmButton, confirmButton);
@@ -3256,25 +3226,21 @@ class ShoppingListApp {
         this.dom.confirmCopyItemsBtn.addEventListener('click', boundConfirmHandler, { once: true });
         console.log("Attached { once: true } listener to confirm copy button.");
 
-        // --- Open the modal BEFORE setting the value ---
-        this.openModal('copyItems');
-        // ----------------------------------------------
-
-        // --- Set the value AFTER populating AND *after* modal is likely visible ---
-        setTimeout(() => {
+        // --- Open the modal BEFORE setting the value ---\n        this.openModal('copyItems');
+        // ----------------------------------------------\n
+        // --- Set the value AFTER populating AND *after* modal is likely visible ---\n        setTimeout(() => {
             if (this.activeListId && this.appData.lists.some(l => l.id === this.activeListId)) {
                 console.log(`[CopyModal LOG - setTimeout] Setting sourceSelect.value to activeListId: ${this.activeListId}`); // <-- MOVE LOG
                 sourceSelect.value = this.activeListId;
             } else {
-                console.log(`[CopyModal LOG - setTimeout] activeListId (${this.activeListId}) is invalid or not found in lists, setting sourceSelect.value to ""`); // <-- MOVE LOG
+                console.log(`[CopyModal LOG - setTimeout] activeListId (${this.activeListId}) is invalid or not found in lists, setting sourceSelect.value to \"\"`); // <-- MOVE LOG
                 sourceSelect.value = ""; // Default to placeholder if activeListId is bad
             }
 
             console.log(`[CopyModal LOG - setTimeout] After setting value - sourceSelect.value: ${sourceSelect.value}`); // <-- MOVE LOG
             console.log(`[CopyModal LOG - setTimeout] After setting value - sourceSelect.selectedIndex: ${sourceSelect.selectedIndex}`); // <-- MOVE LOG
         }, 0); // Use a 0ms delay to push execution after current cycle
-        // -----------------------------------------------------------------------
-    }
+        // -----------------------------------------------------------------------\n    }
 
     async handleConfirmCopyItems() {
         console.log("Confirm Copy Items button clicked.");
@@ -3296,8 +3262,7 @@ class ShoppingListApp {
             return;
         }
         // No need to check if they are the same, UI prevents it via populateDestinationListSelect
-        // --- End Simplified Validation ---
-        
+        // --- End Simplified Validation ---\n        
         console.log(`Attempting to copy items from ${sourceListId} to ${destinationListId}...`);
         confirmButton.disabled = true;
         confirmButton.textContent = 'Copiando...';
@@ -3332,8 +3297,7 @@ class ShoppingListApp {
             //     confirmButton.textContent = 'Copiar Items';
             //     confirmButton.addEventListener('click', this.handleConfirmCopyItems.bind(this), { once: true });
             //     console.log("Re-attached listener to confirm copy button after error.");
-            // }
-        } finally {
+            // }\n        } finally {
              // ALWAYS reset button state here
              if (confirmButton) {
                  confirmButton.disabled = false;
