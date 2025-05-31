@@ -1017,3 +1017,88 @@ section {
 
 /* Item Management Specific */
 /* ... rest of the styles ... */ 
+
+/* Collapsible Store/Category Styles */
+.collapse-toggle-btn {
+    background: none;
+    border: none;
+    color: var(--primary-color); /* Or a different color for contrast */
+    cursor: pointer;
+    font-size: 1rem; /* Adjusted for better fit */
+    padding: 0.2rem 0.4rem; /* Fine-tune padding */
+    margin-right: 0.5rem;
+    line-height: 1; /* Ensure icon aligns well */
+    transition: transform 0.2s ease-in-out;
+    align-self: center;
+    order: -1; /* Place it at the beginning of the flex container (header) */
+}
+
+.collapse-toggle-btn::before {
+    content: '▼'; /* Default: expanded */
+    display: inline-block;
+    font-weight: bold;
+}
+
+.store-container.collapsed > .store-header .collapse-toggle-btn::before,
+.category-container.collapsed > .category-header .collapse-toggle-btn::before {
+    content: '►'; /* Collapsed state */
+}
+
+/* Ensure header elements are aligned nicely with the new button */
+.store-header,
+.category-header {
+    /* display: flex; is already set */
+    align-items: center; /* Ensure vertical alignment */
+}
+
+.store-header .store-name,
+.category-header .category-name {
+    flex-grow: 1; /* Allow name to take up space */
+    margin-left: 0.25rem; /* Small space if button is directly before */
+}
+
+/* Content wrappers that will collapse/expand */
+.categories-wrapper,
+.category-container .item-list,
+.category-container .item-input-area {
+    overflow: hidden;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
+                opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                padding-top 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
+                padding-bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                margin-top 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
+                margin-bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    max-height: 2000px; /* Sufficiently large for content */
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Collapsed state for store's categories */
+.store-container.collapsed .categories-wrapper {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    border-top-width: 0 !important;
+    border-bottom-width: 0 !important;
+    visibility: hidden;
+}
+
+/* Collapsed state for category's items and input area */
+.category-container.collapsed .item-list,
+.category-container.collapsed .item-input-area {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    visibility: hidden;
+}
+
+/* If item-input-area has a border that needs to collapse */
+.category-container.collapsed .item-input-area {
+    border-width: 0 !important;
+}
