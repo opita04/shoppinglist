@@ -542,6 +542,8 @@ class ShoppingListApp {
             // console.log("[App.js] loadData() - localStorage loading complete."); // LOG REMOVED
             
             // Render immediately after loading from localStorage
+            this.listsLoaded = true; // Manually set for localStorage path
+            this.storesLoaded = true; // Manually set for localStorage path
             this.render(); 
         }
         
@@ -1097,38 +1099,64 @@ class ShoppingListApp {
                     const itemElement = itemTemplate.querySelector('.shopping-list-item');
                     const itemNameElement = itemElement.querySelector('.item-name');
                     const itemCheckbox = itemElement.querySelector('.item-checkbox');
-                    const itemLabel = itemElement.querySelector('.item-label'); // Assuming label wraps checkbox + name
+                    const itemLabel = itemElement.querySelector('.item-label');
 
-                    // itemElement.dataset.itemId = item.id; // For event handling - CHANGED (Was using master ID)
-                    itemElement.dataset.shoppingListItemId = item.id; // Store the UNIQUE shopping list item ID
-                    itemElement.dataset.itemId = item.itemId; // Store the master item ID (might be useful elsewhere)
-                    itemElement.dataset.storeId = item.storeId; // Use item's storeId
-                    itemElement.dataset.categoryId = item.categoryId; // Use item's categoryId
+                    itemElement.dataset.shoppingListItemId = item.id;
+                    itemElement.dataset.itemId = item.itemId;
+                    itemElement.dataset.storeId = item.storeId;
+                    itemElement.dataset.categoryId = item.categoryId;
 
                     if (itemNameElement) itemNameElement.textContent = item.name;
+
+                    // Inline Note Elements
+                    const noteTextSpan = document.createElement('span');
+                    noteTextSpan.classList.add('shopping-list-item-note-text');
+                    noteTextSpan.textContent = item.notes || '';
+                    if (!item.notes) noteTextSpan.style.display = 'none';
+
+                    const noteInput = document.createElement('input');
+                    noteInput.type = 'text';
+                    noteInput.classList.add('shopping-list-item-note-input');
+                    noteInput.value = item.notes || '';
+                    noteInput.style.display = 'none'; // Initially hidden
+                    noteInput.setAttribute('aria-label', `Note for ${item.name}`);
+                    
+                    // Add to label or directly to itemElement
+                    if (itemLabel) {
+                        itemLabel.appendChild(noteTextSpan);
+                        itemLabel.appendChild(noteInput);
+                    } else { // Fallback if label structure changes
+                        itemElement.insertBefore(noteTextSpan, itemElement.querySelector('.remove-from-list-btn'));
+                        itemElement.insertBefore(noteInput, itemElement.querySelector('.remove-from-list-btn'));
+                    }
+                    
+                    const editNoteBtn = document.createElement('button');
+                    editNoteBtn.classList.add('edit-note-btn');
+                    editNoteBtn.innerHTML = '&#x270E;'; // Pencil emoji 📝
+                    editNoteBtn.title = 'Edit note';
+                    editNoteBtn.dataset.shoppingListItemId = item.id;
+                    // Insert edit note button after label/name but before remove button
+                    itemElement.insertBefore(editNoteBtn, itemElement.querySelector('.remove-from-list-btn'));
+
+
                     if (itemCheckbox) {
-                        itemCheckbox.checked = item.checked || false; // Handle checked state
-                        // itemCheckbox.id = `shopping-item-${item.id}`; // Unique ID for label association - CHANGED (Was using master ID)
-                        itemCheckbox.id = `shopping-item-${item.id}`; // Use UNIQUE shopping list item ID
+                        itemCheckbox.checked = item.checked || false;
+                        itemCheckbox.id = `shopping-item-${item.id}`;
                         
-                        // Apply/Remove visual styles based on checked state
                         if (itemCheckbox.checked) {
                             itemElement.classList.add('checked');
-                            itemLabel?.classList.add('line-through', 'text-gray-500'); // Style label directly
+                            itemLabel?.classList.add('line-through', 'text-gray-500');
                         } else {
                             itemElement.classList.remove('checked');
-                            itemLabel?.classList.remove('line-through', 'text-gray-500'); // Ensure style is removed
+                            itemLabel?.classList.remove('line-through', 'text-gray-500');
                         }
                     }
                      if (itemLabel) {
-                        // itemLabel.setAttribute('for', `shopping-item-${item.id}`); // Associate label with checkbox - CHANGED (Was using master ID)
-                        itemLabel.setAttribute('for', `shopping-item-${item.id}`); // Use UNIQUE shopping list item ID
+                        itemLabel.setAttribute('for', `shopping-item-${item.id}`);
                     }
                     
-                    // Add data-attributes to buttons for delegation
                     const removeButton = itemElement.querySelector('.remove-from-list-btn');
-                    // if(removeButton) removeButton.dataset.itemId = item.id; // CHANGED (Was using master ID)
-                    if(removeButton) removeButton.dataset.shoppingListItemId = item.id; // Use UNIQUE shopping list item ID
+                    if(removeButton) removeButton.dataset.shoppingListItemId = item.id;
 
                     itemListElement.appendChild(itemElement);
                 });
@@ -2387,14 +2415,13 @@ class ShoppingListApp {
 
         // 4. Create Shopping List Item Object
         const shoppingListItem = {
-            // id: masterItem.id, // Use the same ID as the master item - CHANGED
-            id: this.generateId(), // Generate a UNIQUE ID for this shopping list item
-            itemId: masterItem.id, // Link back to the master item ID
+            id: this.generateId(), 
+            itemId: masterItem.id, 
             name: masterItem.name,
             storeId: storeId,
             categoryId: categoryId,
-            checked: false, // New items are unchecked
-            notes: '' // Add the notes field
+            checked: false,
+            notes: '' // Initialize notes field
         };
 
         console.log("[App.js Log] Creating new shopping list item:", JSON.parse(JSON.stringify(shoppingListItem))); // Added Deep Copy Log
@@ -2416,7 +2443,7 @@ class ShoppingListApp {
                     console.error(`Error updating Firestore after adding item ${masterItem.id}:`, error);
                     alert(`Failed to add item to the cloud list. Error: ${error.message}`);
                     // Revert local change
-                    activeList.shoppingList = activeList.shoppingList.filter(item => item.id !== masterItem.id);
+                    activeList.shoppingList = activeList.shoppingList.filter(item => item.id !== shoppingListItem.id); // Use unique ID for revert
                     this.renderShoppingList(); // Re-render to show reverted state
                 });
         } else {
@@ -2864,27 +2891,19 @@ class ShoppingListApp {
             return; // Click outside a relevant item
         }
 
-        // Check if the click was on the checkbox or its label
-        if (target.classList.contains('item-checkbox') || target.classList.contains('item-label')) {
-            // Find the actual checkbox element within this item element
+        if (target.classList.contains('edit-note-btn')) {
+            this.toggleNoteEdit(shoppingListItemId);
+        } else if (target.classList.contains('item-checkbox') || target.classList.contains('item-label')) {
             const checkbox = itemElement.querySelector('.item-checkbox');
             if (checkbox) {
-                 // Important: Read the checked state AFTER the default browser behavior has occurred
-                 // Use setTimeout to allow the event loop to process the check change before we read it
                  setTimeout(() => {
                     const isChecked = checkbox.checked;
-                    console.log(`DEBUG: Checkbox/Label clicked for ${shoppingListItemId}. Checkbox state: ${isChecked}`); // Added Debug Log
                     this.toggleShoppingItemChecked(shoppingListItemId, isChecked);
                  }, 0);
-            } else {
-                console.warn("Could not find checkbox element within item for ID:", shoppingListItemId);
             }
-        }
-        // Check if the click was on the remove button
-        else if (target.classList.contains('remove-from-list-btn')) {
+        } else if (target.classList.contains('remove-from-list-btn')) {
             this.handleRemoveItemFromShoppingList(shoppingListItemId);
         }
-        // Add handling for notes later
     }
 
     handleArchivedListEvents(event) {
@@ -3478,6 +3497,112 @@ class ShoppingListApp {
         }
         this.saveCollapsedState();
         this.renderMasterStores(); // Re-render to apply changes
+    }
+
+    // --- Inline Note Methods ---
+    toggleNoteEdit(shoppingListItemId) {
+        const itemElement = this.dom.shoppingListItemsContainer.querySelector(`.shopping-list-item[data-shopping-list-item-id="${shoppingListItemId}"]`);
+        if (!itemElement) return;
+
+        const noteTextSpan = itemElement.querySelector('.shopping-list-item-note-text');
+        const noteInput = itemElement.querySelector('.shopping-list-item-note-input');
+        const editNoteBtn = itemElement.querySelector('.edit-note-btn');
+
+        if (!noteTextSpan || !noteInput || !editNoteBtn) return;
+
+        const activeList = this.getActiveList();
+        const listItem = activeList?.shoppingList.find(item => item.id === shoppingListItemId);
+        if (!listItem) return;
+
+        if (noteInput.style.display === 'none') { // Switching to edit mode
+            noteTextSpan.style.display = 'none';
+            noteInput.style.display = 'inline-block';
+            noteInput.value = listItem.notes || '';
+            noteInput.focus();
+            editNoteBtn.innerHTML = '💾'; // Save icon
+            editNoteBtn.title = 'Save note';
+
+            // Add temporary listeners for blur and Enter on the input
+            // Store references on the input element itself to ensure correct removal
+            noteInput._blurHandler = () => {
+                // Check if still in edit mode before saving (e.g., Enter might have already saved)
+                if (noteInput.style.display !== 'none') {
+                    this.saveItemNote(shoppingListItemId, noteInput.value);
+                }
+            };
+            noteInput._enterHandler = (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault(); // Prevent form submission if any
+                    this.saveItemNote(shoppingListItemId, noteInput.value);
+                }
+            };
+            noteInput.addEventListener('blur', noteInput._blurHandler);
+            noteInput.addEventListener('keydown', noteInput._enterHandler);
+
+        } else { // Switching to display mode (usually after save or cancel)
+            noteTextSpan.style.display = 'inline-block';
+            if (listItem.notes) { // Only show if there are notes
+                 noteTextSpan.style.display = 'inline-block';
+            } else {
+                noteTextSpan.style.display = 'none';
+            }
+            noteInput.style.display = 'none';
+            editNoteBtn.innerHTML = '&#x270E;'; // Edit icon
+            editNoteBtn.title = 'Edit note';
+
+            // Clean up temporary listeners
+            if (noteInput._blurHandler) {
+                noteInput.removeEventListener('blur', noteInput._blurHandler);
+                delete noteInput._blurHandler;
+            }
+            if (noteInput._enterHandler) {
+                noteInput.removeEventListener('keydown', noteInput._enterHandler);
+                delete noteInput._enterHandler;
+            }
+        }
+    }
+
+    saveItemNote(shoppingListItemId, newNoteText) {
+        const activeList = this.getActiveList();
+        if (!activeList) return;
+
+        const listItem = activeList.shoppingList.find(item => item.id === shoppingListItemId);
+        if (!listItem) return;
+
+        listItem.notes = newNoteText.trim();
+        this.saveData(); // Persist changes
+        
+        // Re-render the shopping list to show updated note and reset edit state
+        this.renderShoppingList(); 
+        
+        // After re-render, the note input will be hidden by default.
+        // If we want to explicitly switch the specific item back to display mode
+        // without a full re-render, we'd do something like this:
+        // const itemElement = this.dom.shoppingListItemsContainer.querySelector(`.shopping-list-item[data-shopping-list-item-id="${shoppingListItemId}"]`);
+        // if (itemElement) {
+        //     const noteTextSpan = itemElement.querySelector('.shopping-list-item-note-text');
+        //     const noteInput = itemElement.querySelector('.shopping-list-item-note-input');
+        //     const editNoteBtn = itemElement.querySelector('.edit-note-btn');
+            
+        //     if (noteTextSpan) {
+        //         noteTextSpan.textContent = listItem.notes;
+        //         noteTextSpan.style.display = listItem.notes ? 'inline-block' : 'none';
+        //     }
+        //     if (noteInput) noteInput.style.display = 'none';
+        //     if (editNoteBtn) {
+        //         editNoteBtn.innerHTML = '&#x270E;';
+        //         editNoteBtn.title = 'Edit note';
+        //     }
+        //     // Clean up listeners if they were attached to the old input
+        //     if (noteInput && noteInput._blurHandler) {
+        //         noteInput.removeEventListener('blur', noteInput._blurHandler);
+        //         delete noteInput._blurHandler;
+        //     }
+        //     if (noteInput && noteInput._enterHandler) {
+        //         noteInput.removeEventListener('keydown', noteInput._enterHandler);
+        //         delete noteInput._enterHandler;
+        //     }
+        // }
     }
 
 } // Ensure the class definition is properly closed
